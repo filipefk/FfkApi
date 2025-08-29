@@ -1,0 +1,110 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{Entidades}}",
+			"substituirPor": "NomeEntidadePlural",
+			"modificador": null
+		},
+		{
+			"nome": "{{entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "Variavel"
+		},
+		{
+			"nome": "{{PastaInfrastructure}}",
+			"substituirPor": "PastaInfrastructure",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaInfrastructure}}\\DataAccess\\Repositories\\{{Entidade}}Repository.cs",
+	"inclusoesCodigo": [
+		{
+			"caminhoArquivo": "{{PastaInfrastructure}}\\DataAccess\\FfkApiDbContext.cs",
+			"assinaturaFuncao": "public class FfkApiDbContext : DbContext",
+			"blocoAdicionar": "    public DbSet<{{Entidade}}> {{Entidades}} { get; set; }",
+			"ignorarSeJaExistir": true
+		}
+	]
+}
+#>
+using Microsoft.EntityFrameworkCore;
+using FfkApi.Domain.Entities;
+using FfkApi.Domain.Repositories;
+using Polly.Retry;
+
+namespace FfkApi.Infrastructure.DataAccess.Repositories;
+
+public class {{Entidade}}Repository : I{{Entidade}}Repository
+{
+    private readonly FfkApiDbContext _dbContext;
+    private readonly AsyncRetryPolicy _retryPolicy;
+
+    public {{Entidade}}Repository(FfkApiDbContext dbContext, AsyncRetryPolicy retryPolicy)
+    {
+        _dbContext = dbContext;
+        _retryPolicy = retryPolicy;
+    }
+
+    public IQueryable<{{Entidade}}> AsQueryable()
+    {
+        return _dbContext
+            .{{Entidades}}
+            .AsQueryable();
+		// TODO : [GERADOR DE CÓDIGO] => SE PRECISAR USAR ALGUM INCLUDE, ADICIONE AQUI
+    }
+
+    public async Task<long> QuantidadeTotal(CancellationToken cancellationToken)
+    {
+        return await _retryPolicy.ExecuteAsync(
+            async ct => await _dbContext.{{Entidades}}.LongCountAsync(ct),
+            cancellationToken
+        );
+    }
+
+    public async Task Adicionar({{Entidade}} {{entidade}}, CancellationToken cancellationToken)
+    {
+        await _retryPolicy.ExecuteAsync(
+            async ct => await _dbContext.{{Entidades}}.AddAsync({{entidade}}, ct),
+            cancellationToken
+        );
+    }
+
+    public async Task Excluir(Guid id, CancellationToken cancellationToken)
+    {
+        await _retryPolicy.ExecuteAsync(
+            async ct =>
+            {
+                var {{entidade}} = await _dbContext.{{Entidades}}.FindAsync([id, ct], ct);
+
+                if ({{entidade}} is null)
+                    return;
+
+                _dbContext.Remove({{entidade}});
+            },
+            cancellationToken
+        );
+    }
+
+    public async Task<{{Entidade}}?> Pegar{{Entidade}}PorId(Guid id, CancellationToken cancellationToken)
+    {
+        return await _retryPolicy.ExecuteAsync(
+			async ct => await _dbContext.{{Entidades}}.FindAsync([id, ct], ct),
+			cancellationToken
+		);
+		// TODO : [GERADOR DE CÓDIGO] => SE PRECISAR USAR ALGUM INCLUDE, TROQUE POR FirstOrDefaultAsync
+    }
+
+    public async Task<bool> Existe{{Entidade}}ComId(Guid id, CancellationToken cancellationToken)
+    {
+        return await _retryPolicy.ExecuteAsync(
+            async ct => await _dbContext.{{Entidades}}.AnyAsync({{entidade}} => {{entidade}}.Id.Equals(id), ct),
+            cancellationToken
+        );
+    }
+}

@@ -1,0 +1,96 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{ENTIDADE}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "ToUpper"
+		},
+		{
+			"nome": "{{entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "Variavel"
+		},
+		{
+			"nome": "{{PastaTestes}}",
+			"substituirPor": "PastaTestes",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaTestes}}\\UseCases.Test\\{{Entidade}}\\Alterar\\Alterar{{Entidade}}UseCaseTest.cs"
+}
+#>
+using FfkApi.Application.UseCases.{{Entidade}}.Alterar;
+using FfkApi.Exceptions;
+using FfkApi.Exceptions.ExceptionsBase;
+using NUnit.Framework;
+using TestUtil.AutoMapper;
+using TestUtil.Entities;
+using TestUtil.Repositories;
+using TestUtil.Requests;
+
+namespace UseCases.Test.{{Entidade}}.Alterar;
+
+[TestFixture]
+[Parallelizable(ParallelScope.All)]
+public class Alterar{{Entidade}}UseCaseTest
+{
+    [Test]
+    public async Task Sucesso()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var request = RequestAlterar{{Entidade}}Builder.Build();
+
+        var {{entidade}}Alteracao = {{Entidade}}Builder.Build();
+        {{entidade}}Alteracao.Id = Guid.Parse(request.Id!);
+
+        var useCase = CriarUseCase(cancellationToken: cancellationToken, {{entidade}}Alteracao: {{entidade}}Alteracao);
+
+        async Task func() => await useCase.Execute(request, cancellationToken);
+
+        await Task.Run(() => Assert.DoesNotThrowAsync(func));
+    }
+
+    [Test]
+    public async Task Erro_{{Entidade}}_Nao_Encontrada()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var request = RequestAlterar{{Entidade}}Builder.Build();
+
+        var useCase = CriarUseCase(cancellationToken: cancellationToken);
+
+        async Task func() => await useCase.Execute(request, cancellationToken);
+
+        var ex = await Task.Run(() => Assert.ThrowsAsync<ErrorOnValidationException>(async () => await func()));
+        Assert.That(ex, Is.Not.Null);
+        var mensagensDeErro = ex!.PegarMensagensDeErro();
+        Assert.That(mensagensDeErro.Count, Is.EqualTo(1));
+        Assert.That(mensagensDeErro, Contains.Item(ResourceMessagesException.{{ENTIDADE}}_NAO_ENCONTRADA));
+    }
+
+	// TODO : [GERADOR DE CÓDIGO] => COMPLETAR OS TESTES DE ALTERAÇÃO AQUI
+
+    private static Alterar{{Entidade}}UseCase CriarUseCase(
+        CancellationToken cancellationToken,
+        FfkApi.Domain.Entities.{{Entidade}}? {{entidade}}Alteracao = null)
+    {
+        var {{entidade}}Repository = new {{Entidade}}RepositoryBuilder();
+
+        if ({{entidade}}Alteracao != null)
+        {
+            {{entidade}}Repository.SetupPegar{{Entidade}}PorIdReturns{{Entidade}}({{entidade}}Alteracao, cancellationToken);
+        }
+
+        return new Alterar{{Entidade}}UseCase(
+            {{entidade}}Repository.Build(),
+            UnitOfWorkBuilder.Build(),
+            MapperBuilder.Build());
+    }
+}

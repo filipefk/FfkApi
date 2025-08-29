@@ -1,0 +1,153 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{permissao}}",
+			"substituirPor": "PermissaoCadastro",
+			"modificador": null
+		},
+		{
+			"nome": "{{PastaApi}}",
+			"substituirPor": "PastaApi",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaApi}}\\Controllers\\{{Entidade}}Controller.cs"
+}
+#>
+using Microsoft.AspNetCore.Mvc;
+using FfkApi.API.Attributes;
+using FfkApi.Application.UseCases.{{Entidade}}.Alterar;
+using FfkApi.Application.UseCases.{{Entidade}}.Cadastrar;
+using FfkApi.Application.UseCases.{{Entidade}}.CadastrarEmLote;
+using FfkApi.Application.UseCases.{{Entidade}}.Excluir;
+using FfkApi.Application.UseCases.{{Entidade}}.Pegar;
+using FfkApi.Application.UseCases.{{Entidade}}.Pesquisar;
+using FfkApi.Communication.Requests;
+using FfkApi.Communication.Responses;
+using FfkApi.Domain.Enums;
+
+namespace FfkApi.API.Controllers;
+
+[Route("[controller]")]
+[ApiController]
+public sealed class {{Entidade}}Controller : ControllerBase
+{
+    [UsuarioAutenticado(Permissao = "{{permissao}}")]
+    [HttpPost]
+    [ProducesResponseType(typeof(ResponseDados{{Entidade}}), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<ResponseDados{{Entidade}}>> Cadastrar(
+        [FromServices] ICadastrar{{Entidade}}UseCase useCase,
+        [FromBody] RequestCadastrar{{Entidade}} request,
+        CancellationToken cancellationToken)
+    {
+        var response = await useCase.Execute(request, cancellationToken);
+        return Created(string.Empty, response);
+    }
+
+    [SistemaClienteAutenticado]
+    [HttpPost("lote")]
+    [ProducesResponseType(typeof(ResponseCadastrarEmLote<RequestCadastrar{{Entidade}}, ResponseDados{{Entidade}}>), StatusCodes.Status201Created)]
+    [ProducesResponseType(typeof(ResponseCadastrarEmLote<RequestCadastrar{{Entidade}}, ResponseDados{{Entidade}}>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseCadastrarEmLote<RequestCadastrar{{Entidade}}, ResponseDados{{Entidade}}>), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status403Forbidden)]
+    public async Task<ActionResult<ResponseCadastrarEmLote<RequestCadastrar{{Entidade}}, ResponseDados{{Entidade}}>>> CadastrarEmLote(
+        [FromServices] ICadastrar{{Entidade}}EmLoteUseCase useCase,
+        [FromBody] RequestCadastrar{{Entidade}}EmLote request,
+        CancellationToken cancellationToken)
+    {
+        var response = await useCase.Execute(request, cancellationToken);
+        var resultado = EnumUtil.ConverterTextoParaEnum<StatusCadastroLote>(response.Resultado);
+
+        switch (resultado)
+        {
+            case StatusCadastroLote.SucessoTotal:
+                return Created(string.Empty, response);
+            case StatusCadastroLote.SucessoParcial:
+                return Ok(response);
+            case StatusCadastroLote.Indefinido:
+            case StatusCadastroLote.Falha:
+            default:
+                return BadRequest(response);
+        }
+    }
+
+    [UsuarioAutenticado(Permissao = "{{permissao}}")]
+    [HttpPut]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status403Forbidden)]
+    public async Task<IActionResult> Alterar(
+        [FromServices] IAlterar{{Entidade}}UseCase useCase,
+        [FromBody] RequestAlterar{{Entidade}} request,
+        CancellationToken cancellationToken)
+    {
+        await useCase.Execute(request, cancellationToken);
+        return NoContent();
+    }
+
+    [UsuarioAutenticado]
+    [HttpGet("{id}")]
+    [ProducesResponseType(typeof(ResponseDados{{Entidade}}), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status404NotFound)]
+    public async Task<ActionResult<ResponseDados{{Entidade}}>> Pegar(
+        [FromServices] IPegar{{Entidade}}UseCase useCase,
+        [FromRoute] string id,
+        CancellationToken cancellationToken)
+    {
+        var request = new RequestPegar{{Entidade}}
+        {
+            Id = id
+        };
+        var response = await useCase.Execute(request, cancellationToken);
+        return Ok(response);
+    }
+
+    [UsuarioAutenticado]
+    [HttpGet("pesquisar")]
+    [ProducesResponseType(typeof(ResponsePaginado<ResponseDados{{Entidade}}>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status500InternalServerError)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status404NotFound)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status401Unauthorized)]
+    public async Task<ActionResult<ResponsePaginado<ResponseDados{{Entidade}}>>> Pesquisar(
+        [FromServices] IPesquisar{{Entidade}}UseCase useCase,
+        [FromQuery] RequestODataQueryOptions _,
+        CancellationToken cancellationToken)
+    {
+        var response = await useCase.Execute(HttpContext.Request, cancellationToken);
+        return Ok(response);
+    }
+
+    [UsuarioAutenticado(Permissao = "{{permissao}}")]
+    [HttpDelete("{id}")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status403Forbidden)]
+    [ProducesResponseType(typeof(ResponseErro), StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> Excluir(
+        [FromServices] IExcluir{{Entidade}}UseCase useCase,
+        [FromRoute] string id,
+        CancellationToken cancellationToken)
+    {
+        var request = new RequestExcluir{{Entidade}}
+        {
+            Id = id
+        };
+        await useCase.Execute(request, cancellationToken);
+        return NoContent();
+    }
+}

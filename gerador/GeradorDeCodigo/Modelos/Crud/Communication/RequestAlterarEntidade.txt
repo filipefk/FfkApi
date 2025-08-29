@@ -1,0 +1,24 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{PastaCommunication}}",
+			"substituirPor": "PastaCommunication",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaCommunication}}\\Requests\\RequestAlterar{{Entidade}}.cs"
+}
+#>
+namespace FfkApi.Communication.Requests;
+
+public class RequestAlterar{{Entidade}}
+{
+    public string? Id { get; set; } = string.Empty;
+    // TODO : [GERADOR DE CÓDIGO] => PREENCHER AS PROPRIEDADES AQUI
+}

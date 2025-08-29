@@ -1,0 +1,23 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{PastaCommunication}}",
+			"substituirPor": "PastaCommunication",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaCommunication}}\\Requests\\RequestCadastrar{{Entidade}}.cs"
+}
+#>
+namespace FfkApi.Communication.Requests;
+
+public class RequestCadastrar{{Entidade}}
+{
+    // TODO : [GERADOR DE CÓDIGO] => PREENCHER AS PROPRIEDADES AQUI
+}

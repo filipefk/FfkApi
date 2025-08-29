@@ -1,0 +1,35 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "Variavel"
+		},
+		{
+			"nome": "{{PastaDomain}}",
+			"substituirPor": "PastaDomain",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaDomain}}\\Repositories\\I{{Entidade}}Repository.cs"
+}
+#>
+using FfkApi.Domain.Entities;
+
+namespace FfkApi.Domain.Repositories;
+
+public interface I{{Entidade}}Repository
+{
+    Task Adicionar({{Entidade}} {{entidade}}, CancellationToken cancellationToken);
+    Task Excluir(Guid id, CancellationToken cancellationToken);
+    Task<{{Entidade}}?> Pegar{{Entidade}}PorId(Guid id, CancellationToken cancellationToken);
+    Task<bool> Existe{{Entidade}}ComId(Guid id{{Entidade}}, CancellationToken cancellationToken);
+    Task<long> QuantidadeTotal(CancellationToken cancellationToken);
+    IQueryable<{{Entidade}}> AsQueryable();
+}

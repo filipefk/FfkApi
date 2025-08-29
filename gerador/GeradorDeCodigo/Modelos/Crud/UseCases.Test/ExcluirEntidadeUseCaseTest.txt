@@ -1,0 +1,151 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{ENTIDADE}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "ToUpper"
+		},
+		{
+			"nome": "{{entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "Variavel"
+		},
+		{
+			"nome": "{{PastaTestes}}",
+			"substituirPor": "PastaTestes",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaTestes}}\\UseCases.Test\\{{Entidade}}\\Excluir\\Excluir{{Entidade}}UseCaseTest.cs"
+}
+#>
+using FfkApi.Application.UseCases.{{Entidade}}.Excluir;
+using FfkApi.Communication.Requests;
+using FfkApi.Exceptions;
+using FfkApi.Exceptions.ExceptionsBase;
+using NUnit.Framework;
+using TestUtil.Entities;
+using TestUtil.Repositories;
+
+namespace UseCases.Test.{{Entidade}}.Excluir;
+
+[TestFixture]
+[Parallelizable(ParallelScope.All)]
+public class Excluir{{Entidade}}UseCaseTest
+{
+    [Test]
+    public async Task Sucesso()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var {{entidade}} = {{Entidade}}Builder.Build();
+
+        var request = new RequestExcluir{{Entidade}}
+        {
+            Id = {{entidade}}.Id.ToString()
+        };
+
+        var useCase = CriarUseCase(cancellationToken: cancellationToken, {{entidade}}: {{entidade}});
+
+        async Task func() => await useCase.Execute(request, cancellationToken);
+
+        await Task.Run(() => Assert.DoesNotThrowAsync(func));
+    }
+
+    [Test]
+    public async Task Erro_{{Entidade}}_Nao_Encontrada()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var request = new RequestExcluir{{Entidade}}
+        {
+            Id = Guid.NewGuid().ToString()
+        };
+
+        var useCase = CriarUseCase(cancellationToken: cancellationToken);
+
+        async Task func() => await useCase.Execute(request, cancellationToken);
+
+        var ex = await Task.Run(() => Assert.ThrowsAsync<NotFoundException>(async () => await func()));
+        Assert.That(ex, Is.Not.Null);
+        var mensagensDeErro = ex!.PegarMensagensDeErro();
+        Assert.That(mensagensDeErro.Count, Is.EqualTo(1));
+        Assert.That(mensagensDeErro, Contains.Item(ResourceMessagesException.{{ENTIDADE}}_NAO_ENCONTRADA));
+    }
+
+    [Test]
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase("     ")]
+    public async Task Erro_Id_Vazio(string? id)
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var {{entidade}} = {{Entidade}}Builder.Build();
+
+        var request = new RequestExcluir{{Entidade}}
+        {
+            Id = id
+        };
+
+        var useCase = CriarUseCase(cancellationToken: cancellationToken, {{entidade}}: {{entidade}});
+
+        async Task func() => await useCase.Execute(request, cancellationToken);
+
+        var ex = await Task.Run(() => Assert.ThrowsAsync<ErrorOnValidationException>(async () => await func()));
+        Assert.That(ex, Is.Not.Null);
+        var mensagensDeErro = ex!.PegarMensagensDeErro();
+        Assert.That(mensagensDeErro.Count, Is.EqualTo(1));
+        Assert.That(mensagensDeErro, Contains.Item(ResourceMessagesException.ID_VAZIO));
+    }
+
+    [Test]
+    [TestCase("123")]
+    [TestCase("asdfasdf")]
+    [TestCase("b9fc55af-e38u-4852-b4f5-ad6b1277472d")]
+    public async Task Erro_Id_Invalido(string? id)
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var {{entidade}} = {{Entidade}}Builder.Build();
+
+        var request = new RequestExcluir{{Entidade}}
+        {
+            Id = id
+        };
+
+        var useCase = CriarUseCase(cancellationToken: cancellationToken, {{entidade}}: {{entidade}});
+
+        async Task func() => await useCase.Execute(request, cancellationToken);
+
+        var ex = await Task.Run(() => Assert.ThrowsAsync<ErrorOnValidationException>(async () => await func()));
+        Assert.That(ex, Is.Not.Null);
+        var mensagensDeErro = ex!.PegarMensagensDeErro();
+        Assert.That(mensagensDeErro.Count, Is.EqualTo(1));
+        Assert.That(mensagensDeErro, Contains.Item(ResourceMessagesException.ID_INVALIDO));
+    }
+
+    // TODO : [GERADOR DE CÓDIGO] => COMPLETAR OS TESTES DE EXCLUSÃO AQUI
+
+    private static Excluir{{Entidade}}UseCase CriarUseCase(
+        CancellationToken cancellationToken,
+        FfkApi.Domain.Entities.{{Entidade}}? {{entidade}} = null)
+    {
+        var {{entidade}}Repository = new {{Entidade}}RepositoryBuilder();
+
+        if ({{entidade}} != null)
+        {
+            {{entidade}}Repository.SetupPegar{{Entidade}}PorIdReturns{{Entidade}}({{entidade}}, cancellationToken);
+        }
+
+        return new Excluir{{Entidade}}UseCase(
+            {{entidade}}Repository.Build(),
+            UnitOfWorkBuilder.Build());
+    }
+}

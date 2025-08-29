@@ -1,0 +1,36 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "Variavel"
+		},
+		{
+			"nome": "{{PastaTestes}}",
+			"substituirPor": "PastaTestes",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaTestes}}\\TestUtil\\Entities\\{{Entidade}}Builder.cs"
+}
+#>
+using Bogus;
+using FfkApi.Domain.Entities;
+
+namespace TestUtil.Entities;
+
+public class {{Entidade}}Builder
+{
+    public static {{Entidade}} Build()
+    {
+        return new Faker<{{Entidade}}>()
+            .RuleFor({{entidade}} => {{entidade}}.Id, _ => Guid.NewGuid());
+            // TODO : [GERADOR DE CÓDIGO] => COMPLETAR OS CAMPOS DA ENTIDADE AQUI
+    }
+}

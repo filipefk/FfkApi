@@ -1,0 +1,52 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "Variavel"
+		},
+		{
+			"nome": "{{PastaTestes}}",
+			"substituirPor": "PastaTestes",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaTestes}}\\TestUtil\\Repositories\\{{Entidade}}RepositoryBuilder.cs"
+}
+#>
+using Moq;
+using FfkApi.Domain.Entities;
+using FfkApi.Domain.Repositories;
+
+namespace TestUtil.Repositories;
+
+public class {{Entidade}}RepositoryBuilder
+{
+    private readonly Mock<I{{Entidade}}Repository> _{{entidade}}Repository;
+
+    public {{Entidade}}RepositoryBuilder()
+    {
+        _{{entidade}}Repository = new Mock<I{{Entidade}}Repository>();
+    }
+
+    public I{{Entidade}}Repository Build()
+    {
+        return _{{entidade}}Repository.Object;
+    }
+
+    public void SetupExiste{{Entidade}}ComIdReturnsTrue(Guid id, CancellationToken cancellationToken)
+    {
+        _{{entidade}}Repository.Setup(repository => repository.Existe{{Entidade}}ComId(id, cancellationToken)).ReturnsAsync(true);
+    }
+
+    public void SetupPegar{{Entidade}}PorIdReturns{{Entidade}}({{Entidade}} {{entidade}}, CancellationToken cancellationToken)
+    {
+        _{{entidade}}Repository.Setup(repository => repository.Pegar{{Entidade}}PorId({{entidade}}.Id, cancellationToken)).ReturnsAsync({{entidade}});
+    }
+}

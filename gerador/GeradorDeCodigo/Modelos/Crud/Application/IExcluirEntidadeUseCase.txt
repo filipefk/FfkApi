@@ -1,0 +1,23 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{PastaApplication}}",
+			"substituirPor": "PastaApplication",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaApplication}}\\UseCases\\{{Entidade}}\\Excluir\\IExcluir{{Entidade}}UseCase.cs"
+}
+#>
+using FfkApi.Application.IUseCases;
+using FfkApi.Communication.Requests;
+
+namespace FfkApi.Application.UseCases.{{Entidade}}.Excluir;
+
+public interface IExcluir{{Entidade}}UseCase : IExcluirUseCase<RequestExcluir{{Entidade}}> { }

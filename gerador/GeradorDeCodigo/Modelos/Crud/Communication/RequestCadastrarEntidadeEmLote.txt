@@ -1,0 +1,28 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{Entidades}}",
+			"substituirPor": "NomeEntidadePlural",
+			"modificador": null
+		},
+		{
+			"nome": "{{PastaCommunication}}",
+			"substituirPor": "PastaCommunication",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaCommunication}}\\Requests\\RequestCadastrar{{Entidade}}EmLote.cs"
+}
+#>
+namespace FfkApi.Communication.Requests;
+
+public class RequestCadastrar{{Entidade}}EmLote
+{
+    public IList<RequestCadastrar{{Entidade}}> {{Entidades}} { get; set; } = [];
+}

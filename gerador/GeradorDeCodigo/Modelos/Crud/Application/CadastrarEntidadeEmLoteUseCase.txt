@@ -1,0 +1,140 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{Entidades}}",
+			"substituirPor": "NomeEntidadePlural",
+			"modificador": null
+		},
+		{
+			"nome": "{{ENTIDADE}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "ToUpper"
+		},
+		{
+			"nome": "{{entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "Variavel"
+		},
+		{
+			"nome": "{{PastaApplication}}",
+			"substituirPor": "PastaApplication",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaApplication}}\\UseCases\\{{Entidade}}\\CadastrarEmLote\\Cadastrar{{Entidade}}EmLoteUseCase.cs",
+	"inclusoesCodigo": [
+		{
+			"caminhoArquivo": "{{PastaApplication}}\\Services\\AutoMapper\\AutoMapping.cs",
+			"assinaturaFuncao": "private void RequestToDomain()",
+			"blocoAdicionar": "        CreateMap<RequestCadastrar{{Entidade}}, {{Entidade}}>();",
+			"ignorarSeJaExistir": true
+		},
+		{
+			"caminhoArquivo": "{{PastaApplication}}\\Services\\AutoMapper\\AutoMapping.cs",
+			"assinaturaFuncao": "private void DomainToResponse()",
+			"blocoAdicionar": "        CreateMap<{{Entidade}}, ResponseDados{{Entidade}}>();",
+			"ignorarSeJaExistir": true
+		}
+	]
+}
+#>
+using AutoMapper;
+using FfkApi.Application.Extension;
+using FfkApi.Application.UseCases.{{Entidade}}.Cadastrar;
+using FfkApi.Communication.Requests;
+using FfkApi.Communication.Responses;
+using FfkApi.Domain.Repositories;
+using FfkApi.Exceptions;
+
+namespace FfkApi.Application.UseCases.{{Entidade}}.CadastrarEmLote;
+
+public class Cadastrar{{Entidade}}EmLoteUseCase : ICadastrar{{Entidade}}EmLoteUseCase
+{
+    private readonly IMapper _mapper;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly I{{Entidade}}Repository _{{entidade}}Repository;
+
+    public Cadastrar{{Entidade}}EmLoteUseCase(
+        I{{Entidade}}Repository {{entidade}}Repository,
+        IUnitOfWork unitOfWork,
+        IMapper mapper)
+    {
+        _{{entidade}}Repository = {{entidade}}Repository;
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
+    }
+
+    public async Task<ResponseCadastrarEmLote<RequestCadastrar{{Entidade}}, ResponseDados{{Entidade}}>> Execute(RequestCadastrar{{Entidade}}EmLote requests, CancellationToken cancellationToken)
+    {
+        var response = new ResponseCadastrarEmLote<RequestCadastrar{{Entidade}}, ResponseDados{{Entidade}}>();
+
+        if (requests == null || requests.{{Entidades}} == null || requests.{{Entidades}}.Count == 0)
+        {
+            var erro = new ResponseErroCadastroLote<RequestCadastrar{{Entidade}}>
+            {
+                Request = null!,
+                MensagensDeErro = [ResourceMessagesException.LISTA_DE_{{ENTIDADE}}_VAZIA]
+            };
+            response.Erros.Add(erro);
+            return response;
+        }
+
+        foreach (var request in requests.{{Entidades}})
+        {
+            var mensagensDeErro = await Validar(request, cancellationToken);
+
+            if (mensagensDeErro.Count > 0)
+            {
+                var erro = new ResponseErroCadastroLote<RequestCadastrar{{Entidade}}>
+                {
+                    Request = request,
+                    MensagensDeErro = mensagensDeErro
+                };
+                response.Erros.Add(erro);
+                continue;
+            }
+
+            var {{entidade}} = _mapper.Map<Domain.Entities.{{Entidade}}>(request);
+            await _{{entidade}}Repository.Adicionar({{entidade}}, cancellationToken);
+            await _unitOfWork.CommitAsync(cancellationToken);
+            response.Cadastrados.Add(_mapper.Map<ResponseDados{{Entidade}}>({{entidade}}));
+        }
+        return response;
+    }
+
+    private async Task<List<string>> Validar(RequestCadastrar{{Entidade}} request, CancellationToken cancellationToken)
+    {
+        List<string> mensagensDeErro = [];
+        mensagensDeErro.AddRange(await ValidarRequisicao(request, cancellationToken));
+        mensagensDeErro.AddRange(await Validar{{Entidade}}(request, cancellationToken));
+
+        return mensagensDeErro;
+    }
+
+    private async Task<List<string>> ValidarRequisicao(RequestCadastrar{{Entidade}} request, CancellationToken cancellationToken)
+    {
+        var validator = new Cadastrar{{Entidade}}Validator();
+
+        var result = await validator.ValidateAsync(request, cancellationToken);
+
+        if (!result.IsValid)
+        {
+            return result.ToListErros();
+        }
+
+        return [];
+    }
+
+    private async Task<List<string>> Validar{{Entidade}}(RequestCadastrar{{Entidade}} request, CancellationToken cancellationToken)
+    {
+        // TODO : [GERADOR DE CÓDIGO] => COMPLETAR O CÓDIGO DE VALIDAÇÃO DA ENTIDADE AQUI
+
+        return [];
+    }
+}

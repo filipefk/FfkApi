@@ -1,0 +1,42 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{PastaTestes}}",
+			"substituirPor": "PastaTestes",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaTestes}}\\Validators.Test\\{{Entidade}}\\Cadastrar\\Cadastrar{{Entidade}}ValidatorTest.cs"
+}
+#>
+using FfkApi.Application.UseCases.{{Entidade}}.Cadastrar;
+using FfkApi.Exceptions;
+using NUnit.Framework;
+using TestUtil.Requests;
+
+namespace Validators.Test.{{Entidade}}.Cadastrar;
+
+[TestFixture]
+[Parallelizable(ParallelScope.All)]
+public class Cadastrar{{Entidade}}ValidatorTest
+{
+    [Test]
+    public void Sucesso()
+    {
+        var validator = new Cadastrar{{Entidade}}Validator();
+
+        var request = RequestCadastrar{{Entidade}}Builder.Build();
+
+        var result = validator.Validate(request);
+
+        Assert.That(result.IsValid, Is.True);
+    }
+    
+	// TODO : [GERADOR DE CÓDIGO] => COMPLETAR OS TESTES DO VALIDATOR AQUI
+}

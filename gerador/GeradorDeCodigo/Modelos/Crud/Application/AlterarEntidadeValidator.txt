@@ -1,0 +1,36 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{PastaApplication}}",
+			"substituirPor": "PastaApplication",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaApplication}}\\UseCases\\{{Entidade}}\\Alterar\\Alterar{{Entidade}}Validator.cs"
+}
+#>
+using FluentValidation;
+using FfkApi.Application.Validators;
+using FfkApi.Communication.Requests;
+using FfkApi.Exceptions;
+
+namespace FfkApi.Application.UseCases.{{Entidade}}.Alterar;
+
+public class Alterar{{Entidade}}Validator : AbstractValidator<RequestAlterar{{Entidade}}>
+{
+    public Alterar{{Entidade}}Validator()
+    {
+        RuleFor(request => request.Id).NotEmpty().WithMessage(ResourceMessagesException.ID_VAZIO);
+        When(request => !string.IsNullOrWhiteSpace(request.Id), () =>
+        {
+            RuleFor(request => request.Id).Must(IdValidator.IdEstaValido).WithMessage(ResourceMessagesException.ID_INVALIDO);
+        });
+        // TODO : [GERADOR DE CÓDIGO] => COLOCAR AS VALIDAÇÕES RESTANTES AQUI
+    }
+}

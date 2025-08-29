@@ -1,0 +1,46 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "Variavel"
+		},
+		{
+			"nome": "{{PastaTestes}}",
+			"substituirPor": "PastaTestes",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaTestes}}\\TestUtil\\Requests\\RequestAlterar{{Entidade}}Builder.cs"
+}
+#>
+using Bogus;
+using FfkApi.Communication.Requests;
+
+namespace TestUtil.Requests;
+
+public class RequestAlterar{{Entidade}}Builder
+{
+    public static RequestAlterar{{Entidade}} Build()
+    {
+        return new Faker<RequestAlterar{{Entidade}}>()
+            .RuleFor(request => request.Id, fake => fake.Random.Guid().ToString());
+			
+		// TODO : [GERADOR DE CÓDIGO] => COMPLETAR OS CAMPOS DA REQUEST AQUI
+    }
+
+    public static RequestAlterar{{Entidade}} Build(FfkApi.Domain.Entities.{{Entidade}} {{entidade}})
+    {
+        return new RequestAlterar{{Entidade}}
+        {
+            Id = {{entidade}}.Id.ToString()
+            // TODO : [GERADOR DE CÓDIGO] => COMPLETAR OS CAMPOS DA REQUEST AQUI
+        };
+    }
+}

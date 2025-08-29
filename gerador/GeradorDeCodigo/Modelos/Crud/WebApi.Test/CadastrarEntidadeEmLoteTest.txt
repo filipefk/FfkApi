@@ -1,0 +1,352 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "Variavel"
+		},
+		{
+			"nome": "{{ENTIDADE}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "ToUpper"
+		},
+		{
+			"nome": "{{Entidades}}",
+			"substituirPor": "NomeEntidadePlural",
+			"modificador": null
+		},
+		{
+			"nome": "{{PastaTestes}}",
+			"substituirPor": "PastaTestes",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaTestes}}\\WebApi.Test\\{{Entidade}}\\CadastrarEmLote\\Cadastrar{{Entidade}}EmLoteTest.cs"
+}
+#>
+using FfkApi.Communication.Requests;
+using FfkApi.Communication.Responses;
+using FfkApi.Domain.Enums;
+using FfkApi.Domain.Extension;
+using FfkApi.Exceptions;
+using NUnit.Framework;
+using System.Net;
+using System.Text.Json;
+using TestUtil.HttpUtil;
+using TestUtil.Requests;
+using TestUtil.Tokens;
+using WebApi.Test.InfraestruturaEmMemoria;
+
+namespace WebApi.Test.{{Entidade}}.CadastrarEmLote;
+
+[TestFixture]
+[Parallelizable(ParallelScope.All)]
+public class Cadastrar{{Entidade}}EmLoteTest : FfkApiClassFixture
+{
+    private readonly string _baseUrl{{Entidade}} = "{{entidade}}";
+    private readonly FfkApi.Domain.Entities.Usuario _usuarioAdministrador;
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
+
+    public Cadastrar{{Entidade}}EmLoteTest()
+    {
+        _usuarioAdministrador = (FfkApi.Domain.Entities.Usuario)_factory.EntidadesCriadas()["UsuarioAdministrador"];
+    }
+
+    private ResponseCadastrarEmLote<RequestCadastrar{{Entidade}}, ResponseDados{{Entidade}}> DeserializaDadosDaResposta(JsonDocument jsonDocument)
+    {
+        return jsonDocument.RootElement.Deserialize<ResponseCadastrarEmLote<RequestCadastrar{{Entidade}}, ResponseDados{{Entidade}}>>(
+            _jsonSerializerOptions)!;
+    }
+
+    private static void CompararRequests(RequestCadastrar{{Entidade}} requestCadastrar{{Entidade}}1, RequestCadastrar{{Entidade}} requestCadastrar{{Entidade}}2)
+    {
+        // Assert.That(requestCadastrar{{Entidade}}1.Propriedade, Is.EqualTo(requestCadastrar{{Entidade}}2.Propriedade));
+        // TODO : [GERADOR DE CÓDIGO] => FAZER O ASSERT DOS OUTROS CAMPOS AQUI
+    }
+
+    private static void CompararRequestComResponse(RequestCadastrar{{Entidade}} requestCadastrar{{Entidade}}, ResponseDados{{Entidade}} responseDados{{Entidade}})
+    {
+        // Assert.That(requestCadastrar{{Entidade}}.Propriedade, Is.EqualTo(responseDados{{Entidade}}.Propriedade));
+        // TODO : [GERADOR DE CÓDIGO] => FAZER O ASSERT DOS OUTROS CAMPOS AQUI
+    }
+
+    [Test]
+    public async Task Sucesso_Total()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var sistemaCliente = await CadastrarNovoSistemaCliente(_usuarioAdministrador.Id);
+
+        var token = GeradorTokenSistemaClienteBuilder.Build().Gerar(sistemaCliente.Id);
+
+        var request = RequestCadastrar{{Entidade}}EmLoteBuilder.Build();
+
+        var response = await DoPost(url: $"{_baseUrl{{Entidade}}}/lote", request: request, token: token, cancellationToken: cancellationToken);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+
+        var responseObj = DeserializaDadosDaResposta(await HttpResponseUtil.PegarDadosDaResposta(response));
+
+        Assert.That(responseObj.Cadastrados.Count, Is.EqualTo(request.{{Entidades}}.Count));
+
+        // TODO : [GERADOR DE CÓDIGO] => FAZER O ASSERT DOS OUTROS CAMPOS DA ENTIDADE AQUI
+        
+        var dicionario = responseObj.Cadastrados
+            .ToDictionary(
+                c => c.CampoUnico, // TODO : [GERADOR DE CÓDIGO] => ESCOLHER UM CAMPO ÚNICO DA ENTIDADE PARA SER A KEY DO DICIONÁRIO
+                c => c
+            );
+
+        foreach (var {{entidade}}Request in request.{{Entidades}})
+        {
+            Assert.That(dicionario.ContainsKey({{entidade}}Request.CampoUnico!));
+            CompararRequestComResponse({{entidade}}Request, dicionario[{{entidade}}Request.CampoUnico!]);
+        }
+
+        Assert.That(responseObj.Erros, Is.Empty);
+        Assert.That(responseObj.TotalCadastrados, Is.EqualTo(request.{{Entidades}}.Count));
+        Assert.That(responseObj.TotalErros, Is.EqualTo(0));
+        Assert.That(responseObj.Resultado, Is.EqualTo(StatusCadastroLote.SucessoTotal.ToString()));
+    }
+
+    [Test]
+    public async Task Sucesso_Parcial()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var sistemaCliente = await CadastrarNovoSistemaCliente(_usuarioAdministrador.Id);
+
+        var token = GeradorTokenSistemaClienteBuilder.Build().Gerar(sistemaCliente.Id);
+
+        var request = RequestCadastrar{{Entidade}}EmLoteBuilder.Build();
+        var {{entidade}} = request.{{Entidades}}.FirstOrDefault();
+        // TODO : [GERADOR DE CÓDIGO] => COLOCAR ALGO QUE GERE UM ERRO AQUI
+
+        var response = await DoPost(url: $"{_baseUrl{{Entidade}}}/lote", request: request, token: token, cancellationToken: cancellationToken);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var responseObj = DeserializaDadosDaResposta(await HttpResponseUtil.PegarDadosDaResposta(response));
+
+        Assert.That(responseObj.Cadastrados.Count, Is.EqualTo(request.{{Entidades}}.Count - 1));
+
+        // TODO : [GERADOR DE CÓDIGO] => FAZER O ASSERT DOS OUTROS CAMPOS DA ENTIDADE AQUI
+
+        var dicionario = responseObj.Cadastrados
+            .ToDictionary(
+                c => c.CampoUnico, // TODO : [GERADOR DE CÓDIGO] => ESCOLHER UM CAMPO ÚNICO DA ENTIDADE PARA SER A KEY DO DICIONÁRIO
+                c => c
+            );
+
+        foreach (var {{entidade}}Request in request.{{Entidades}}.Where(e => e.CampoErro != valorErroProposital)) // TODO : [GERADOR DE CÓDIGO] => COLOCAR UM WHERE ADEQUADO AQUI
+        {
+            Assert.That(dicionario.ContainsKey({{entidade}}Request.CampoUnico!));
+            CompararRequestComResponse({{entidade}}Request, dicionario[{{entidade}}Request.CampoUnico!]);
+        }
+
+        // TODO : [GERADOR DE CÓDIGO] => FAZER O ASSERT DOS OUTROS CAMPOS DA ENTIDADE AQUI
+
+        Assert.That(responseObj.Erros.Count, Is.EqualTo(1));
+        CompararRequests(responseObj.Erros[0].Request, {{entidade}}!);
+
+        Assert.That(responseObj.Erros[0].MensagensDeErro.ListaStringTemSoUmItem(MessagesException.GetString("CONSTANTE_ERRO")));  // TODO : [GERADOR DE CÓDIGO] => COLOCAR A CONSTANTE ADEQUADA AQUI
+        Assert.That(responseObj.TotalCadastrados, Is.EqualTo(request.{{Entidades}}.Count - 1));
+        Assert.That(responseObj.TotalErros, Is.EqualTo(1));
+        Assert.That(responseObj.Resultado, Is.EqualTo(StatusCadastroLote.SucessoParcial.ToString()));
+    }
+
+    [Test]
+    public async Task Falha_Total()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var sistemaCliente = await CadastrarNovoSistemaCliente(_usuarioAdministrador.Id);
+
+        var token = GeradorTokenSistemaClienteBuilder.Build().Gerar(sistemaCliente.Id);
+
+        var request = RequestCadastrar{{Entidade}}EmLoteBuilder.Build(2);
+        var {{entidade}}1 = request.{{Entidades}}.FirstOrDefault();
+        // TODO : [GERADOR DE CÓDIGO] => COLOCAR ALGO QUE GERE UM ERRO AQUI
+
+        var {{entidade}}2 = request.{{Entidades}}.Skip(1).FirstOrDefault();
+        // TODO : [GERADOR DE CÓDIGO] => COLOCAR ALGO QUE GERE UM ERRO AQUI
+
+        var response = await DoPost(url: $"{_baseUrl{{Entidade}}}/lote", request: request, token: token, cancellationToken: cancellationToken);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var responseObj = DeserializaDadosDaResposta(await HttpResponseUtil.PegarDadosDaResposta(response));
+
+        Assert.That(responseObj!.Cadastrados.Count, Is.EqualTo(0));
+        Assert.That(responseObj.Erros.Count, Is.EqualTo(request.{{Entidades}}.Count));
+
+        // TODO : [GERADOR DE CÓDIGO] => FAZER O ASSERT DOS OUTROS CAMPOS DA ENTIDADE AQUI
+
+        var responseErroQueRequestTemErro1 = responseObj!.Erros
+            .FirstOrDefault(e => e.CampoErro1 == valorErro1);
+
+        CompararRequests(responseErroQueRequestTemErro1!.Request, {{entidade}}1);
+        Assert.That(responseErroQueRequestTemErro1.MensagensDeErro.ListaStringTemSoUmItem(MessagesException.GetString("CONSTANTE_ERRO1"))); // TODO : [GERADOR DE CÓDIGO] => COLOCAR A CONSTANTE ADEQUADA AQUI
+
+        var responseErroQueRequestTemErro2 = responseObj!.Erros
+            .FirstOrDefault(e => e.CampoErro2 == valorErro2);
+
+        CompararRequests(responseErroQueRequestTemErro2!.Request, {{entidade}}2);
+        Assert.That(responseErroQueRequestTemErro2.MensagensDeErro.ListaStringTemSoUmItem(MessagesException.GetString("CONSTANTE_ERRO2"))); // TODO : [GERADOR DE CÓDIGO] => COLOCAR A CONSTANTE ADEQUADA AQUI
+
+        Assert.That(responseObj.TotalCadastrados, Is.EqualTo(0));
+        Assert.That(responseObj.TotalErros, Is.EqualTo(request.{{Entidades}}.Count));
+        Assert.That(responseObj.Resultado, Is.EqualTo(StatusCadastroLote.Falha.ToString()));
+    }
+
+    [Test]
+    public async Task Erro_Lista_{{Entidades}}_Vazia()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var sistemaCliente = await CadastrarNovoSistemaCliente(_usuarioAdministrador.Id);
+
+        var token = GeradorTokenSistemaClienteBuilder.Build().Gerar(sistemaCliente.Id);
+
+        var request = new RequestCadastrar{{Entidade}}EmLote
+        {
+            {{Entidades}} = []
+        };
+
+        var response = await DoPost(url: $"{_baseUrl{{Entidade}}}/lote", request: request, token: token, cancellationToken: cancellationToken);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var responseObj = DeserializaDadosDaResposta(await HttpResponseUtil.PegarDadosDaResposta(response));
+
+        Assert.That(responseObj.Cadastrados, Is.Empty);
+        Assert.That(responseObj.Erros.Count, Is.EqualTo(1));
+        Assert.That(responseObj.Erros[0].Request, Is.Null);
+        Assert.That(responseObj.Erros[0].MensagensDeErro.ListaStringTemSoUmItem(MessagesException.GetString("LISTA_DE_{{ENTIDADE}}_VAZIA")));
+    }
+
+    [Test]
+    public async Task Erro_Usando_Token_De_Usuario()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var token = GeradorTokenUsuarioBuilder.Build().Gerar(_usuarioAdministrador.Id);
+
+        var request = RequestCadastrar{{Entidade}}EmLoteBuilder.Build();
+
+        var response = await DoPost(url: $"{_baseUrl{{Entidade}}}/lote", request: request, token: token, cancellationToken: cancellationToken);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+
+        var erros = await HttpResponseUtil.ConverterParaResponseErro(response);
+        Assert.That(erros.MensagensDeErro.ListaStringTemSoUmItem(MessagesException.GetString("TOKEN_INVALIDO")));
+    }
+
+    [Test]
+    public async Task Erro_Sem_Token()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var request = RequestCadastrar{{Entidade}}EmLoteBuilder.Build();
+
+        var response = await DoPost(url: $"{_baseUrl{{Entidade}}}/lote", request: request, cancellationToken: cancellationToken);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+
+        var erros = await HttpResponseUtil.ConverterParaResponseErro(response);
+        Assert.That(erros.MensagensDeErro.ListaStringTemSoUmItem(MessagesException.GetString("SEM_TOKEN")));
+    }
+
+    [Test]
+    public async Task Erro_Token_Invalido()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var request = RequestCadastrar{{Entidade}}EmLoteBuilder.Build();
+
+        var response = await DoPost(url: $"{_baseUrl{{Entidade}}}/lote", request: request, token: "TokenInvalido", cancellationToken: cancellationToken);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+
+        var erros = await HttpResponseUtil.ConverterParaResponseErro(response);
+        Assert.That(erros.MensagensDeErro.ListaStringTemSoUmItem(MessagesException.GetString("TOKEN_INVALIDO")));
+    }
+
+    [Test]
+    public async Task Erro_Token_De_Sistema_Nao_Encontrado()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var token = GeradorTokenUsuarioBuilder.Build().Gerar(Guid.NewGuid());
+
+        var request = RequestCadastrar{{Entidade}}EmLoteBuilder.Build();
+
+        var response = await DoPost(url: $"{_baseUrl{{Entidade}}}/lote", request: request, token: token, cancellationToken: cancellationToken);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+
+        var erros = await HttpResponseUtil.ConverterParaResponseErro(response);
+        Assert.That(erros.MensagensDeErro.ListaStringTemSoUmItem(MessagesException.GetString("TOKEN_INVALIDO")));
+    }
+
+    [Test]
+    public async Task Erro_Token_Expirado()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJodHRwOi8vc2NoZW1hcy54bWxzb2FwLm9yZy93cy8yMDA1LzA1L2lkZW50aXR5L2Ns"
+                    + "YWltcy9zaWQiOiIwYmY3ZTNmNC0zMTNjLTQ5YzYtODhhZS1jODNkZDFiMGI5YjAiLCJuYmYiOjE3NDg2MTMxMjUsImV4cCI6MTc0ODY"
+                    + "xMzE4NSwiaWF0IjoxNzQ4NjEzMTI1fQ.pyoO-CcPlhLlCGuEIHXa0boyL4XHXzF3apRHw6wZdks";
+
+        var request = RequestCadastrar{{Entidade}}EmLoteBuilder.Build();
+
+        var response = await DoPost(url: $"{_baseUrl{{Entidade}}}/lote", request: request, token: token, cancellationToken: cancellationToken);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+
+        var erros = await HttpResponseUtil.ConverterParaResponseErro(response);
+        Assert.That(erros.MensagensDeErro.ListaStringTemSoUmItem(MessagesException.GetString("TOKEN_APLICACAO_AUSENTE")));
+    }
+
+    [Test]
+    public async Task Erro_App_Token_Ausente()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var token = GeradorTokenUsuarioBuilder.Build().Gerar(_usuarioAdministrador.Id);
+
+        var request = RequestCadastrar{{Entidade}}Builder.Build();
+
+        var response = await DoPost(url: $"{_baseUrl{{Entidade}}}/lote", request: request, token: token, cancellationToken: cancellationToken, addAppToken: false);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+
+        var erros = await HttpResponseUtil.ConverterParaResponseErro(response);
+        Assert.That(erros.MensagensDeErro.ListaStringTemSoUmItem(MessagesException.GetString("TOKEN_APLICACAO_AUSENTE")));
+    }
+
+    [Test]
+    public async Task Erro_App_Token_Invalido()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var sistemaCliente = await CadastrarNovoSistemaCliente(_usuarioAdministrador.Id);
+
+        var token = GeradorTokenSistemaClienteBuilder.Build().Gerar(sistemaCliente.Id);
+
+        var request = RequestCadastrar{{Entidade}}EmLoteBuilder.Build();
+
+        var response = await DoPost(url: $"{_baseUrl{{Entidade}}}/lote", request: request, token: token, cancellationToken: cancellationToken, appToken: "app-token-invalido");
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Unauthorized));
+
+        var erros = await HttpResponseUtil.ConverterParaResponseErro(response);
+        Assert.That(erros.MensagensDeErro.ListaStringTemSoUmItem(MessagesException.GetString("TOKEN_APLICACAO_INVALIDO")));
+    }
+}

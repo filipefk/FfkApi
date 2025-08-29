@@ -1,0 +1,80 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{PastaTestes}}",
+			"substituirPor": "PastaTestes",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaTestes}}\\Validators.Test\\{{Entidade}}\\Alterar\\Alterar{{Entidade}}ValidatorTest.cs"
+}
+#>
+using FfkApi.Application.UseCases.{{Entidade}}.Alterar;
+using FfkApi.Exceptions;
+using NUnit.Framework;
+using TestUtil.Requests;
+
+namespace Validators.Test.{{Entidade}}.Alterar;
+
+[TestFixture]
+[Parallelizable(ParallelScope.All)]
+public class Alterar{{Entidade}}ValidatorTest
+{
+    [Test]
+    public void Sucesso()
+    {
+        var validator = new Alterar{{Entidade}}Validator();
+
+        var request = RequestAlterar{{Entidade}}Builder.Build();
+
+        var result = validator.Validate(request);
+
+        Assert.That(result.IsValid, Is.True);
+    }
+
+    [Test]
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase("        ")]
+    public void Erro_Id_Vazio(string? id)
+    {
+        var validator = new Alterar{{Entidade}}Validator();
+
+        var request = RequestAlterar{{Entidade}}Builder.Build();
+        request.Id = id;
+
+        var result = validator.Validate(request);
+
+        Assert.That(result.IsValid, Is.False);
+
+        Assert.That(result.Errors, Has.Count.EqualTo(1));
+        Assert.That(result.Errors[0].ErrorMessage, Is.EqualTo(ResourceMessagesException.ID_VAZIO));
+    }
+
+    [Test]
+    [TestCase("123")]
+    [TestCase("asdfasdf")]
+    [TestCase("b9fc55af-e38u-4852-b4f5-ad6b1277472d")]
+    public void Erro_Id_Invalido(string id)
+    {
+        var validator = new Alterar{{Entidade}}Validator();
+
+        var request = RequestAlterar{{Entidade}}Builder.Build();
+        request.Id = id;
+
+        var result = validator.Validate(request);
+
+        Assert.That(result.IsValid, Is.False);
+
+        Assert.That(result.Errors, Has.Count.EqualTo(1));
+        Assert.That(result.Errors[0].ErrorMessage, Is.EqualTo(ResourceMessagesException.ID_INVALIDO));
+    }
+    
+	// TODO : [GERADOR DE CÓDIGO] => COMPLETAR OS TESTES DO VALIDATOR AQUI
+}

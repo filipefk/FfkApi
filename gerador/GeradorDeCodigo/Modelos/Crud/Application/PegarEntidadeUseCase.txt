@@ -1,0 +1,70 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{ENTIDADE}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "ToUpper"
+		},
+		{
+			"nome": "{{entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "Variavel"
+		},
+		{
+			"nome": "{{PastaApplication}}",
+			"substituirPor": "PastaApplication",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaApplication}}\\UseCases\\{{Entidade}}\\Pegar\\Pegar{{Entidade}}UseCase.cs",
+	"inclusoesCodigo": [
+		{
+			"caminhoArquivo": "{{PastaApplication}}\\Services\\AutoMapper\\AutoMapping.cs",
+			"assinaturaFuncao": "private void DomainToResponse()",
+			"blocoAdicionar": "        CreateMap<{{Entidade}}, ResponseDados{{Entidade}}>();",
+			"ignorarSeJaExistir": true
+		}
+	]
+}
+#>
+using AutoMapper;
+using FfkApi.Application.Validators;
+using FfkApi.Communication.Requests;
+using FfkApi.Communication.Responses;
+using FfkApi.Domain.Repositories;
+using FfkApi.Exceptions;
+using FfkApi.Exceptions.ExceptionsBase;
+
+namespace FfkApi.Application.UseCases.{{Entidade}}.Pegar;
+
+public class Pegar{{Entidade}}UseCase : IPegar{{Entidade}}UseCase
+{
+    private readonly IMapper _mapper;
+    private readonly I{{Entidade}}Repository _{{entidade}}Repository;
+
+    public Pegar{{Entidade}}UseCase(
+        I{{Entidade}}Repository {{entidade}}Repository,
+        IMapper mapper)
+    {
+        _{{entidade}}Repository = {{entidade}}Repository;
+        _mapper = mapper;
+    }
+
+    public async Task<ResponseDados{{Entidade}}> Execute(RequestPegar{{Entidade}} request, CancellationToken cancellationToken)
+    {
+        var idValido = IdValidator.ValidarId(request.Id);
+
+        var {{entidade}} = await _{{entidade}}Repository.Pegar{{Entidade}}PorId(idValido, cancellationToken);
+
+        if ({{entidade}} == null)
+            throw new NotFoundException(ResourceMessagesException.{{ENTIDADE}}_NAO_ENCONTRADA);
+
+        return _mapper.Map<ResponseDados{{Entidade}}>({{entidade}});
+    }
+}

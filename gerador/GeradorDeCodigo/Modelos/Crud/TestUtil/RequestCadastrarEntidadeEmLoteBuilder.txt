@@ -1,0 +1,56 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{Entidades}}",
+			"substituirPor": "NomeEntidadePlural",
+			"modificador": null
+		},
+		{
+			"nome": "{{entidades}}",
+			"substituirPor": "NomeEntidadePlural",
+			"modificador": "ToLower"
+		},
+		{
+			"nome": "{{PastaTestes}}",
+			"substituirPor": "PastaTestes",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaTestes}}\\TestUtil\\Requests\\RequestCadastrar{{Entidade}}EmLoteBuilder.cs"
+}
+#>
+using FfkApi.Communication.Requests;
+
+namespace TestUtil.Requests;
+
+public class RequestCadastrar{{Entidade}}EmLoteBuilder
+{
+    public static RequestCadastrar{{Entidade}}EmLote Build(int? quantos = 3)
+    {
+        var {{entidades}} = new List<RequestCadastrar{{Entidade}}>();
+
+        for (var i = 0; i < quantos; i++)
+        {
+            {{entidades}}.Add(RequestCadastrar{{Entidade}}Builder.Build());
+        }
+
+        return new RequestCadastrar{{Entidade}}EmLote
+        {
+            {{Entidades}} = {{entidades}}
+        };
+    }
+
+    public static RequestCadastrar{{Entidade}}EmLote Build(FfkApi.Domain.Entities.{{Entidade}}[] {{entidades}})
+    {
+        return new RequestCadastrar{{Entidade}}EmLote
+        {
+            {{Entidades}} = {{entidades}}.Select(RequestCadastrar{{Entidade}}Builder.Build).ToList()
+        };
+    }
+}

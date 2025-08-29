@@ -1,0 +1,86 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{Entidades}}",
+			"substituirPor": "NomeEntidadePlural",
+			"modificador": null
+		},
+		{
+			"nome": "{{ENTIDADE}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "ToUpper"
+		},
+		{
+			"nome": "{{entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "Variavel"
+		},
+		{
+			"nome": "{{PastaApplication}}",
+			"substituirPor": "PastaApplication",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaApplication}}\\UseCases\\{{Entidade}}\\Pesquisar\\Pesquisar{{Entidade}}UseCase.cs"
+}
+#>
+using AutoMapper;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.OData.Query;
+using Microsoft.OData.ModelBuilder;
+using FfkApi.Communication.Responses;
+using FfkApi.Domain.Repositories;
+using FfkApi.Exceptions;
+using FfkApi.Exceptions.ExceptionsBase;
+
+namespace FfkApi.Application.UseCases.{{Entidade}}.Pesquisar;
+
+public class Pesquisar{{Entidade}}UseCase : IPesquisar{{Entidade}}UseCase
+{
+    private readonly IMapper _mapper;
+    private readonly I{{Entidade}}Repository _{{entidade}}Repository;
+
+    public Pesquisar{{Entidade}}UseCase(
+        I{{Entidade}}Repository {{entidade}}Repository,
+        IMapper mapper)
+    {
+        _{{entidade}}Repository = {{entidade}}Repository;
+        _mapper = mapper;
+    }
+
+    public async Task<ResponsePaginado<ResponseDados{{Entidade}}>> Execute(HttpRequest httpRequest, CancellationToken cancellationToken)
+    {
+        var quantidadeTotal = await _{{entidade}}Repository.QuantidadeTotal(cancellationToken);
+        if (quantidadeTotal == 0)
+            throw new NotFoundException(ResourceMessagesException.{{ENTIDADE}}_NAO_ENCONTRADA);
+
+        var modelBuilder = new ODataConventionModelBuilder();
+        modelBuilder.EntitySet<Domain.Entities.{{Entidade}}>("{{Entidades}}");
+        var odataQueryContext = new ODataQueryContext(modelBuilder.GetEdmModel(), typeof(Domain.Entities.{{Entidade}}), new Microsoft.OData.UriParser.ODataPath());
+        var queryOptions = new ODataQueryOptions<Domain.Entities.{{Entidade}}>(odataQueryContext, httpRequest);
+        var resultados = queryOptions.ApplyTo(_{{entidade}}Repository.AsQueryable()) as IQueryable<Domain.Entities.{{Entidade}}>;
+
+        if (resultados == null || !resultados.Any())
+            throw new NotFoundException(ResourceMessagesException.{{ENTIDADE}}_NAO_ENCONTRADA);
+
+        var tamanhoPagina = (int)quantidadeTotal;
+        if (queryOptions.Top != null && queryOptions.Top.Value < (int)quantidadeTotal)
+            tamanhoPagina = queryOptions.Top.Value;
+
+        var paginaAtual = 1;
+        if (queryOptions.Skip != null && tamanhoPagina < (int)quantidadeTotal)
+            paginaAtual = queryOptions.Skip.Value / tamanhoPagina + 1;
+
+        return new ResponsePaginado<ResponseDados{{Entidade}}>(
+            _mapper.Map<List<ResponseDados{{Entidade}}>>(resultados!.ToList()),
+            paginaAtual,
+            tamanhoPagina,
+            quantidadeTotal);
+    }
+}

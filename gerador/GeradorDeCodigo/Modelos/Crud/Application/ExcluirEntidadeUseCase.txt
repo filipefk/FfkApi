@@ -1,0 +1,63 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{ENTIDADE}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "ToUpper"
+		},
+		{
+			"nome": "{{entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "Variavel"
+		},
+		{
+			"nome": "{{PastaApplication}}",
+			"substituirPor": "PastaApplication",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaApplication}}\\UseCases\\{{Entidade}}\\Excluir\\Excluir{{Entidade}}UseCase.cs"
+}
+#>
+using FfkApi.Application.Validators;
+using FfkApi.Communication.Requests;
+using FfkApi.Domain.Repositories;
+using FfkApi.Exceptions;
+using FfkApi.Exceptions.ExceptionsBase;
+
+namespace FfkApi.Application.UseCases.{{Entidade}}.Excluir;
+
+public class Excluir{{Entidade}}UseCase : IExcluir{{Entidade}}UseCase
+{
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly I{{Entidade}}Repository _{{entidade}}Repository;
+
+    public Excluir{{Entidade}}UseCase(
+        I{{Entidade}}Repository {{entidade}}Repository,
+        IUnitOfWork unitOfWork)
+    {
+        _{{entidade}}Repository = {{entidade}}Repository;
+        _unitOfWork = unitOfWork;
+    }
+
+    public async Task Execute(RequestExcluir{{Entidade}} request, CancellationToken cancellationToken)
+    {
+        var idValido = IdValidator.ValidarId(request.Id);
+
+        var {{entidade}} = await _{{entidade}}Repository.Pegar{{Entidade}}PorId(idValido, cancellationToken);
+
+        if ({{entidade}} == null)
+            throw new NotFoundException(ResourceMessagesException.{{ENTIDADE}}_NAO_ENCONTRADA);
+        
+		// TODO : [GERADOR DE CÓDIGO] => VERIFICAR SE NECESSITA MAIS VALIDAÇÕES AQUI
+        
+		await _{{entidade}}Repository.Excluir(idValido, cancellationToken);
+        await _unitOfWork.CommitAsync(cancellationToken);
+    }
+}

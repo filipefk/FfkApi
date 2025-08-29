@@ -1,0 +1,66 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "Variavel"
+		},
+		{
+			"nome": "{{PastaTestes}}",
+			"substituirPor": "PastaTestes",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaTestes}}\\UseCases.Test\\{{Entidade}}\\Cadastrar\\Cadastrar{{Entidade}}UseCaseTest.cs"
+}
+#>
+using FfkApi.Application.UseCases.{{Entidade}}.Cadastrar;
+using FfkApi.Exceptions;
+using FfkApi.Exceptions.ExceptionsBase;
+using NUnit.Framework;
+using TestUtil.AutoMapper;
+using TestUtil.Entities;
+using TestUtil.Repositories;
+using TestUtil.Requests;
+
+namespace UseCases.Test.{{Entidade}}.Cadastrar;
+
+[TestFixture]
+[Parallelizable(ParallelScope.All)]
+public class Cadastrar{{Entidade}}UseCaseTest
+{
+    [Test]
+    public async Task Sucesso()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var request = RequestCadastrar{{Entidade}}Builder.Build();
+
+        var useCase = CriarUseCase(cancellationToken: cancellationToken);
+
+        var response = await useCase.Execute(request, cancellationToken);
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.Id, Is.Not.Null);
+        // TODO : [GERADOR DE CÓDIGO] => INCLUIR O ASSERT DE TODOS OS CAMPOS DA ENTIDADE AQUI
+    }
+
+	// TODO : [GERADOR DE CÓDIGO] => COMPLETAR OS TESTES DE CADASTRO AQUI
+
+    private static Cadastrar{{Entidade}}UseCase CriarUseCase(
+        CancellationToken cancellationToken)
+    {
+        var {{entidade}}Repository = new {{Entidade}}RepositoryBuilder();
+
+        return new Cadastrar{{Entidade}}UseCase(
+            {{entidade}}Repository.Build(),
+            UnitOfWorkBuilder.Build(),
+            MapperBuilder.Build());
+    }
+}

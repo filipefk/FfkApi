@@ -1,0 +1,45 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "Variavel"
+		},
+		{
+			"nome": "{{PastaTestes}}",
+			"substituirPor": "PastaTestes",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaTestes}}\\TestUtil\\Requests\\RequestCadastrar{{Entidade}}Builder.cs"
+}
+#>
+using Bogus;
+using FfkApi.Communication.Requests;
+
+namespace TestUtil.Requests;
+
+public class RequestCadastrar{{Entidade}}Builder
+{
+    public static RequestCadastrar{{Entidade}} Build()
+    {
+        //return new Faker<RequestCadastrar{{Entidade}}>()
+        //    .RuleFor(request => request.Campo, fake => fake.Lorem.Sentence());
+        // TODO : [GERADOR DE CÓDIGO] => COMPLETAR OS CAMPOS DA REQUEST AQUI
+    }
+
+    public static RequestCadastrar{{Entidade}} Build(FfkApi.Domain.Entities.{{Entidade}} {{entidade}})
+    {
+        //return new RequestCadastrar{{Entidade}}
+        //{
+        //    Campo = {{entidade}}.Campo
+        //};
+		// TODO : [GERADOR DE CÓDIGO] => COMPLETAR OS CAMPOS DA REQUEST AQUI
+    }
+}

@@ -1,0 +1,23 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{PastaApplication}}",
+			"substituirPor": "PastaApplication",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaApplication}}\\UseCases\\{{Entidade}}\\Pesquisar\\IPesquisar{{Entidade}}UseCase.cs"
+}
+#>
+using FfkApi.Application.IUseCases;
+using FfkApi.Communication.Responses;
+
+namespace FfkApi.Application.UseCases.{{Entidade}}.Pesquisar;
+
+public interface IPesquisar{{Entidade}}UseCase : IPesquisarUseCase<ResponseDados{{Entidade}}> { }

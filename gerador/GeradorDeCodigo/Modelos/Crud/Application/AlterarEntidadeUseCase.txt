@@ -1,0 +1,111 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{ENTIDADE}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "ToUpper"
+		},
+		{
+			"nome": "{{entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "Variavel"
+		},
+		{
+			"nome": "{{PastaApplication}}",
+			"substituirPor": "PastaApplication",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaApplication}}\\UseCases\\{{Entidade}}\\Alterar\\Alterar{{Entidade}}UseCase.cs",
+	"inclusoesCodigo": [
+		{
+			"caminhoArquivo": "{{PastaApplication}}\\Services\\AutoMapper\\AutoMapping.cs",
+			"assinaturaFuncao": "private void RequestToDomain()",
+			"blocoAdicionar": "        CreateMap<RequestAlterar{{Entidade}}, {{Entidade}}>();",
+			"ignorarSeJaExistir": true
+		}
+	]
+}
+#>
+using AutoMapper;
+using FfkApi.Application.Extension;
+using FfkApi.Application.Validators;
+using FfkApi.Communication.Requests;
+using FfkApi.Domain.Repositories;
+using FfkApi.Exceptions;
+using FfkApi.Exceptions.ExceptionsBase;
+
+namespace FfkApi.Application.UseCases.{{Entidade}}.Alterar;
+
+public class Alterar{{Entidade}}UseCase : IAlterar{{Entidade}}UseCase
+{
+    private readonly IMapper _mapper;
+    private readonly IUnitOfWork _unitOfWork;
+    private readonly I{{Entidade}}Repository _{{entidade}}Repository;
+
+    public Alterar{{Entidade}}UseCase(
+        I{{Entidade}}Repository {{entidade}}Repository,
+        IUnitOfWork unitOfWork,
+        IMapper mapper)
+    {
+        _{{entidade}}Repository = {{entidade}}Repository;
+        _unitOfWork = unitOfWork;
+        _mapper = mapper;
+    }
+
+    public async Task Execute(RequestAlterar{{Entidade}} request, CancellationToken cancellationToken)
+    {
+        await Validar(request, cancellationToken);
+
+        var {{entidade}} = await _{{entidade}}Repository.Pegar{{Entidade}}PorId(Guid.Parse(request.Id!), cancellationToken);
+        _mapper.Map(request, {{entidade}});
+
+        await _unitOfWork.CommitAsync(cancellationToken);
+    }
+
+    private async Task Validar(RequestAlterar{{Entidade}} request, CancellationToken cancellationToken)
+    {
+        List<string> mensagensDeErro = [];
+        mensagensDeErro.AddRange(await ValidarRequisicao(request, cancellationToken));
+        mensagensDeErro.AddRange(await Validar{{Entidade}}(request, cancellationToken));
+
+        if (mensagensDeErro.Count > 0)
+        {
+            throw new ErrorOnValidationException(mensagensDeErro.Distinct().ToList());
+        }
+    }
+
+    private async Task<List<string>> ValidarRequisicao(RequestAlterar{{Entidade}} request, CancellationToken cancellationToken)
+    {
+        var validator = new Alterar{{Entidade}}Validator();
+
+        var result = await validator.ValidateAsync(request, cancellationToken);
+
+        if (!result.IsValid)
+        {
+            return result.ToListErros();
+        }
+
+        return [];
+    }
+
+    private async Task<List<string>> Validar{{Entidade}}(RequestAlterar{{Entidade}} request, CancellationToken cancellationToken)
+    {
+        if (IdValidator.IdEstaValido(request.Id!))
+        {
+            var {{entidade}} = await _{{entidade}}Repository.Pegar{{Entidade}}PorId(Guid.Parse(request.Id!), cancellationToken);
+            if ({{entidade}} == null)
+                return [ResourceMessagesException.{{ENTIDADE}}_NAO_ENCONTRADA];
+
+            // TODO : [GERADOR DE CÓDIGO] => COMPLETAR O CÓDIGO DE VALIDAÇÃO DA ENTIDADE AQUI
+        }
+
+        return [];
+    }
+}

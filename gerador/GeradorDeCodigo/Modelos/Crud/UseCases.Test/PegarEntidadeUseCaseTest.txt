@@ -1,0 +1,153 @@
+<#
+{
+	"variaveis": [
+		{
+			"nome": "{{Entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": null
+		},
+		{
+			"nome": "{{ENTIDADE}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "ToUpper"
+		},
+		{
+			"nome": "{{entidade}}",
+			"substituirPor": "NomeEntidade",
+			"modificador": "Variavel"
+		},
+		{
+			"nome": "{{PastaTestes}}",
+			"substituirPor": "PastaTestes",
+			"modificador": null
+		}
+	],
+	"arquivoDestino": "{{PastaTestes}}\\UseCases.Test\\{{Entidade}}\\Pegar\\Pegar{{Entidade}}UseCaseTest.cs"
+}
+#>
+using FfkApi.Application.UseCases.{{Entidade}}.Pegar;
+using FfkApi.Communication.Requests;
+using FfkApi.Exceptions;
+using FfkApi.Exceptions.ExceptionsBase;
+using NUnit.Framework;
+using TestUtil.AutoMapper;
+using TestUtil.Entities;
+using TestUtil.Repositories;
+
+namespace UseCases.Test.{{Entidade}}.Pegar;
+
+[TestFixture]
+[Parallelizable(ParallelScope.All)]
+public class Pegar{{Entidade}}UseCaseTest
+{
+    [Test]
+    public async Task Sucesso()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var {{entidade}} = {{Entidade}}Builder.Build();
+
+        var request = new RequestPegar{{Entidade}}
+        {
+            Id = {{entidade}}.Id.ToString()
+        };
+
+        var useCase = CriarUseCase(cancellationToken: cancellationToken, {{entidade}}: {{entidade}});
+
+        var response = await useCase.Execute(request, cancellationToken);
+
+        Assert.That(response, Is.Not.Null);
+        Assert.That(response.Id, Is.Not.Null);
+        Assert.That(response.Id, Is.EqualTo({{entidade}}.Id));
+        // TODO : [GERADOR DE CÓDIGO] => INCLUIR O ASSERT DE TODOS OS CAMPOS DA ENTIDADE AQUI
+    }
+
+    [Test]
+    public async Task Erro_{{Entidade}}_Nao_Encontrada()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var request = new RequestPegar{{Entidade}}
+        {
+            Id = Guid.NewGuid().ToString()
+        };
+
+        var useCase = CriarUseCase(cancellationToken: cancellationToken);
+
+        async Task func() => await useCase.Execute(request, cancellationToken);
+
+        var ex = await Task.Run(() => Assert.ThrowsAsync<NotFoundException>(async () => await func()));
+        Assert.That(ex, Is.Not.Null);
+        var mensagensDeErro = ex!.PegarMensagensDeErro();
+        Assert.That(mensagensDeErro.Count, Is.EqualTo(1));
+        Assert.That(mensagensDeErro, Contains.Item(ResourceMessagesException.{{ENTIDADE}}_NAO_ENCONTRADA));
+    }
+
+    [Test]
+    [TestCase(null)]
+    [TestCase("")]
+    [TestCase("     ")]
+    public async Task Erro_Id_Vazio(string? id)
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var {{entidade}} = {{Entidade}}Builder.Build();
+
+        var request = new RequestPegar{{Entidade}}
+        {
+            Id = id
+        };
+
+        var useCase = CriarUseCase(cancellationToken: cancellationToken, {{entidade}}: {{entidade}});
+
+        async Task func() => await useCase.Execute(request, cancellationToken);
+
+        var ex = await Task.Run(() => Assert.ThrowsAsync<ErrorOnValidationException>(async () => await func()));
+        Assert.That(ex, Is.Not.Null);
+        var mensagensDeErro = ex!.PegarMensagensDeErro();
+        Assert.That(mensagensDeErro.Count, Is.EqualTo(1));
+        Assert.That(mensagensDeErro, Contains.Item(ResourceMessagesException.ID_VAZIO));
+    }
+
+    [Test]
+    [TestCase("123")]
+    [TestCase("asdfasdf")]
+    [TestCase("b9fc55af-e38u-4852-b4f5-ad6b1277472d")]
+    public async Task Erro_Id_Invalido(string? id)
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var {{entidade}} = {{Entidade}}Builder.Build();
+
+        var request = new RequestPegar{{Entidade}}
+        {
+            Id = id
+        };
+
+        var useCase = CriarUseCase(cancellationToken: cancellationToken, {{entidade}}: {{entidade}});
+
+        async Task func() => await useCase.Execute(request, cancellationToken);
+
+        var ex = await Task.Run(() => Assert.ThrowsAsync<ErrorOnValidationException>(async () => await func()));
+        Assert.That(ex, Is.Not.Null);
+        var mensagensDeErro = ex!.PegarMensagensDeErro();
+        Assert.That(mensagensDeErro.Count, Is.EqualTo(1));
+        Assert.That(mensagensDeErro, Contains.Item(ResourceMessagesException.ID_INVALIDO));
+    }
+
+    private static Pegar{{Entidade}}UseCase CriarUseCase(
+        CancellationToken cancellationToken,
+        FfkApi.Domain.Entities.{{Entidade}}? {{entidade}} = null)
+    {
+        var {{entidade}}Repository = new {{Entidade}}RepositoryBuilder();
+
+        if ({{entidade}} != null)
+        {
+            {{entidade}}Repository.SetupPegar{{Entidade}}PorIdReturns{{Entidade}}({{entidade}}, cancellationToken);
+        }
+
+        return new Pegar{{Entidade}}UseCase(
+            {{entidade}}Repository.Build(),
+            MapperBuilder.Build());
+    }
+}
