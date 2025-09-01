@@ -27,10 +27,32 @@ public class FeedRepository : IFeedRepository
             .AsQueryable();
     }
 
+    public IQueryable<Feed> AsQueryable(Guid idOrganizacao)
+    {
+        return _dbContext
+            .Feeds
+            .Include(feed => feed.Anexos)
+            .Include(feed => feed.VisibilidadeUsuarios)
+            .Include(feed => feed.VisibilidadeEquipes)
+            .Include(feed => feed.Organizacao)
+            .Where(feed => feed.Organizacao.Id == idOrganizacao)
+            .AsQueryable();
+    }
+
     public async Task<long> QuantidadeTotal(CancellationToken cancellationToken)
     {
         return await _retryPolicy.ExecuteAsync(async ct =>
             await _dbContext.Feeds.LongCountAsync(ct),
+            cancellationToken
+        );
+    }
+
+    public async Task<long> QuantidadeTotal(Guid idOrganizacao, CancellationToken cancellationToken)
+    {
+        return await _retryPolicy.ExecuteAsync(async ct =>
+            await _dbContext.Feeds
+                .Where(feed => feed.Organizacao.Id == idOrganizacao)
+                .LongCountAsync(ct),
             cancellationToken
         );
     }
@@ -66,6 +88,20 @@ public class FeedRepository : IFeedRepository
                 .Include(feed => feed.VisibilidadeEquipes)
                 .Include(feed => feed.Organizacao)
                 .FirstOrDefaultAsync(feed => feed.Id.Equals(id), ct),
+            cancellationToken
+        );
+    }
+
+    public async Task<Feed?> PegarFeedPorId(Guid id, Guid idOrganizacao, CancellationToken cancellationToken)
+    {
+        return await _retryPolicy.ExecuteAsync(async ct =>
+            await _dbContext
+                .Feeds
+                .Include(feed => feed.Anexos)
+                .Include(feed => feed.VisibilidadeUsuarios)
+                .Include(feed => feed.VisibilidadeEquipes)
+                .Include(feed => feed.Organizacao)
+                .FirstOrDefaultAsync(feed => feed.Id.Equals(id) && feed.Organizacao.Id.Equals(idOrganizacao), ct),
             cancellationToken
         );
     }

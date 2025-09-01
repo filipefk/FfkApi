@@ -33,13 +33,18 @@ public class E2EExcluirFeedTest : E2EClassFixture
     }
 
     [Test]
-    public async Task Sucesso_Administrador()
+    public async Task Sucesso_Administrador_Excluindo_Feed_De_Outra_Organizacao()
     {
         var cancellationToken = new CancellationTokenSource().Token;
 
         var token = GeradorTokenUsuarioBuilder.Build().Gerar(_usuarioAdministrador.Id);
 
-        var feed = await CadastroHelper.CadastrarNovoFeed(1, _tamanhoMaximoArquivo);
+        var organizacaoNova = await CadastroHelper.CadastrarNovaOrganizacao();
+
+        var feed = await CadastroHelper.CadastrarNovoFeed(
+            quantAnexos: 1,
+            tamanhoMaximoArquivo: _tamanhoMaximoArquivo,
+            organizacao: organizacaoNova);
 
         var response = await HttpHelper.DoGet(url: $"{_baseUrlFeed}/{feed.Id}", token: token, cancellationToken: cancellationToken);
 
@@ -65,7 +70,7 @@ public class E2EExcluirFeedTest : E2EClassFixture
     }
 
     [Test]
-    public async Task Sucesso_Usuario_Com_Permissao()
+    public async Task Sucesso_Usuario_Com_Permissao_Excluindo_Feed_Da_Propria_Organizacao()
     {
         var cancellationToken = new CancellationTokenSource().Token;
 
@@ -73,7 +78,10 @@ public class E2EExcluirFeedTest : E2EClassFixture
 
         var token = GeradorTokenUsuarioBuilder.Build().Gerar(usuarioPermissaoCadastroFeeds.Id);
 
-        var feed = await CadastroHelper.CadastrarNovoFeed(1, _tamanhoMaximoArquivo);
+        var feed = await CadastroHelper.CadastrarNovoFeed(
+            quantAnexos: 1,
+            tamanhoMaximoArquivo: _tamanhoMaximoArquivo,
+            organizacao: usuarioPermissaoCadastroFeeds.Organizacao);
 
         var response = await HttpHelper.DoGet(url: $"{_baseUrlFeed}/{feed.Id}", token: token, cancellationToken: cancellationToken);
 
@@ -96,6 +104,47 @@ public class E2EExcluirFeedTest : E2EClassFixture
         Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
 
         Assert.That(!await ExisteAnexo(idAnexo!));
+    }
+
+    [Test]
+    public async Task Erro_Usuario_Com_Permissao_Excluindo_Feed_De_Outra_Organizacao()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var organizacaoNova = await CadastroHelper.CadastrarNovaOrganizacao();
+
+        var feed = await CadastroHelper.CadastrarNovoFeed(
+            quantAnexos: 1,
+            tamanhoMaximoArquivo: _tamanhoMaximoArquivo,
+            organizacao: organizacaoNova);
+
+        var token = GeradorTokenUsuarioBuilder.Build().Gerar(_usuarioAdministrador.Id);
+
+        var response = await HttpHelper.DoGet(url: $"{_baseUrlFeed}/{feed.Id}", token: token, cancellationToken: cancellationToken);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.OK));
+
+        var dadosDaResposta = await HttpResponseUtil.PegarDadosDaResposta(response);
+
+        var listaAnexos = dadosDaResposta.RootElement.GetProperty("anexos").EnumerateArray();
+        Assert.That(listaAnexos.Count, Is.EqualTo(1));
+        var idAnexo = listaAnexos.FirstOrDefault().GetProperty("id").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(idAnexo));
+        Assert.That(await ExisteAnexo(idAnexo!));
+
+        var usuarioPermissaoCadastroFeeds = await CadastroHelper.CadastrarNovoUsuario(permissoes: ["Cadastro de Feeds"], ativar: true);
+        token = GeradorTokenUsuarioBuilder.Build().Gerar(usuarioPermissaoCadastroFeeds.Id);
+
+        response = await HttpHelper.DoDelete(url: $"{_baseUrlFeed}/{feed.Id}", token: token, cancellationToken: cancellationToken);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+
+        var erros = await HttpResponseUtil.PegarMensagensDeErro(response);
+
+        var mensagemEsperada = MessagesException.GetString("FEED_NAO_ENCONTRADO");
+
+        Assert.That(erros.Count(), Is.EqualTo(1));
+        Assert.That(erros.FirstOrDefault().GetString(), Is.EqualTo(mensagemEsperada));
     }
 
     [Test]

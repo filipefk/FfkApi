@@ -47,7 +47,7 @@ public class EquipeRepository : IEquipeRepository
     {
         return await _retryPolicy.ExecuteAsync(async ct =>
             await _dbContext.Equipes
-                .Where(ato => ato.Organizacao.Id == idOrganizacao)
+                .Where(equipe => equipe.Organizacao.Id == idOrganizacao)
                 .LongCountAsync(ct),
             cancellationToken
         );

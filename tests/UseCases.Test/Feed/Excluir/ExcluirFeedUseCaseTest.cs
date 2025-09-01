@@ -14,7 +14,7 @@ namespace UnidadeUseCases.Test.Feed.Excluir;
 public class ExcluirFeedUseCaseTest
 {
     [Test]
-    public async Task Sucesso()
+    public async Task Sucesso_Administrador_Excluindo_Feed_De_Outra_Organizacao()
     {
         var cancellationToken = new CancellationTokenSource().Token;
 
@@ -25,11 +25,68 @@ public class ExcluirFeedUseCaseTest
             Id = feed.Id.ToString()
         };
 
-        var useCase = CriarUseCase(cancellationToken: cancellationToken, feed: feed);
+        var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            feed: feed);
 
         async Task func() => await useCase.Execute(request, cancellationToken);
 
         await Task.Run(() => Assert.DoesNotThrowAsync(func));
+    }
+
+    [Test]
+    public async Task Sucesso_Nao_Administrador_Excluindo_Feed_Da_Propria_Organizacao()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var feed = FeedBuilder.Build();
+
+        var request = new RequestExcluirFeed
+        {
+            Id = feed.Id.ToString()
+        };
+
+        var usuarioLogado = UsuarioBuilder.Build(organizacao: feed.Organizacao);
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            feed: feed);
+
+        async Task func() => await useCase.Execute(request, cancellationToken);
+
+        await Task.Run(() => Assert.DoesNotThrowAsync(func));
+    }
+
+    [Test]
+    public async Task Erro_Nao_Administrador_Excluindo_Feed_De_Outra_Organizacao()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var feed = FeedBuilder.Build();
+
+        var request = new RequestExcluirFeed
+        {
+            Id = feed.Id.ToString()
+        };
+
+        var usuarioLogado = UsuarioBuilder.Build();
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            feed: feed);
+
+        async Task func() => await useCase.Execute(request, cancellationToken);
+
+        var ex = await Task.Run(() => Assert.ThrowsAsync<NotFoundException>(async () => await func()));
+        Assert.That(ex, Is.Not.Null);
+        var mensagensDeErro = ex!.PegarMensagensDeErro();
+        Assert.That(mensagensDeErro.Count, Is.EqualTo(1));
+        Assert.That(mensagensDeErro, Contains.Item(ResourceMessagesException.FEED_NAO_ENCONTRADO));
     }
 
     [Test]
@@ -42,7 +99,11 @@ public class ExcluirFeedUseCaseTest
             Id = Guid.NewGuid().ToString()
         };
 
-        var useCase = CriarUseCase(cancellationToken: cancellationToken);
+        var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado);
 
         async Task func() => await useCase.Execute(request, cancellationToken);
 
@@ -68,7 +129,12 @@ public class ExcluirFeedUseCaseTest
             Id = id
         };
 
-        var useCase = CriarUseCase(cancellationToken: cancellationToken, feed: feed);
+        var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken, 
+            usuarioLogado: usuarioLogado,
+            feed: feed);
 
         async Task func() => await useCase.Execute(request, cancellationToken);
 
@@ -94,7 +160,12 @@ public class ExcluirFeedUseCaseTest
             Id = id
         };
 
-        var useCase = CriarUseCase(cancellationToken: cancellationToken, feed: feed);
+        var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken, 
+            usuarioLogado: usuarioLogado,
+            feed: feed);
 
         async Task func() => await useCase.Execute(request, cancellationToken);
 
@@ -107,6 +178,7 @@ public class ExcluirFeedUseCaseTest
 
     private static ExcluirFeedUseCase CriarUseCase(
         CancellationToken cancellationToken,
+        FfkApi.Domain.Entities.Usuario usuarioLogado,
         FfkApi.Domain.Entities.Feed? feed = null)
     {
         var feedRepository = new FeedRepositoryBuilder();
@@ -114,11 +186,13 @@ public class ExcluirFeedUseCaseTest
         if (feed != null)
         {
             feedRepository.SetupPegarFeedPorIdReturnsFeed(feed, cancellationToken);
+            feedRepository.SetupPegarFeedPorIdReturnsFeed(feed, feed.Organizacao.Id, cancellationToken);
         }
 
         return new ExcluirFeedUseCase(
             feedRepository.Build(),
             UnitOfWorkBuilder.Build(),
-            new ArmazenadorDeAnexoServiceBuilder().Build());
+            new ArmazenadorDeAnexoServiceBuilder().Build(),
+            UsuarioLogadoServiceBuilder.Build(usuarioLogado, cancellationToken));
     }
 }

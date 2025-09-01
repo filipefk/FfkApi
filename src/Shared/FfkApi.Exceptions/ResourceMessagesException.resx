@@ -396,4 +396,10 @@
   <data name="IMPOSSIVEL_TROCAR_ORGANIZACAO_EQUIPE_QUANDO_TEM_MEMBROS" xml:space="preserve">
     <value>Não é possível trocar a organização da equipe enquanto existirem membros associados</value>
   </data>
+  <data name="IMPOSSIVEL_TROCAR_ORGANIZACAO_FEED_QUANDO_TEM_VISIBILIDADE_EQUIPES" xml:space="preserve">
+    <value>Não é possível trocar a organização do feed enquanto existirem equipes associadas</value>
+  </data>
+  <data name="IMPOSSIVEL_TROCAR_ORGANIZACAO_FEED_QUANDO_TEM_VISIBILIDADE_USUARIOS" xml:space="preserve">
+    <value>Não é possível trocar a organização do feed enquanto existirem usuários associados</value>
+  </data>
 </root>

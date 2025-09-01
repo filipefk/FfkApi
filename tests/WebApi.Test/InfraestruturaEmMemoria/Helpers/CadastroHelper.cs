@@ -2,6 +2,7 @@ using FfkApi.Domain.Entities;
 using FfkApi.Domain.Enums;
 using NUnit.Framework;
 using System.Net;
+using TestUtil.Extension;
 using TestUtil.HttpUtil;
 using TestUtil.Requests;
 using TestUtil.Tokens;
@@ -65,12 +66,13 @@ public class CadastroHelper
         List<FfkApi.Domain.Entities.Usuario> usuariosEquipe,
         FfkApi.Domain.Entities.Organizacao? organizacao = null)
     {
+        organizacao ??= usuarioLogin.Organizacao;
         var cancellationToken = new CancellationTokenSource().Token;
 
         var token = GeradorTokenUsuarioBuilder.Build().Gerar(usuarioLogin.Id);
 
         var request = RequestCadastrarEquipeBuilder.Build();
-        request.Organizacao = organizacao?.Nome;
+        request.Organizacao = organizacao.Nome;
         request.Membros = [];
         foreach (var usuario in usuariosEquipe)
         {
@@ -97,7 +99,7 @@ public class CadastroHelper
         Assert.That(status, Is.EqualTo(request.Status));
 
         var organizacaoResposta = dadosDaResposta.RootElement.GetProperty("organizacao").GetString();
-        Assert.That(organizacaoResposta, Is.EqualTo(organizacao == null ? usuarioLogin.Organizacao.Nome : organizacao.Nome));
+        Assert.That(organizacaoResposta, Is.EqualTo(organizacao!.Nome));
 
         var requestMembrosByEmail = request.Membros!
             .Where(m => m.Email != null)
@@ -128,7 +130,7 @@ public class CadastroHelper
             Nome = nome!,
             Descricao = descricao!,
             Status = EnumUtil.ConverterTextoParaEnum<StatusEquipe>(status!),
-            Organizacao = organizacao ?? usuarioLogin.Organizacao!
+            Organizacao = organizacao
         };
 
         foreach (var email in responseMembrosByEmail.Keys)
@@ -151,5 +153,76 @@ public class CadastroHelper
         }
 
         return novaEquipe;
+    }
+
+    public async Task<FfkApi.Domain.Entities.Feed> CadastrarNovoFeed(
+        FfkApi.Domain.Entities.Usuario usuarioLogin,
+        FfkApi.Domain.Entities.Organizacao? organizacao = null)
+    {
+        organizacao ??= usuarioLogin.Organizacao;
+
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var token = GeradorTokenUsuarioBuilder.Build().Gerar(usuarioLogin.Id);
+
+        var request = RequestCadastrarFeedBuilder.Build();
+        request.Organizacao = organizacao.Nome;
+        request.VisibilidadeEquipes = [];
+        request.VisibilidadeUsuarios = [];
+
+        var response = await _httpHelper.DoPost(url: "feed", request: request, token: token, cancellationToken: cancellationToken);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+
+        var dadosDaResposta = await HttpResponseUtil.PegarDadosDaResposta(response);
+
+        var id = dadosDaResposta.RootElement.GetProperty("id").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(id));
+
+        var nome = dadosDaResposta.RootElement.GetProperty("nome").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(nome));
+        Assert.That(nome, Is.EqualTo(request.Nome));
+
+        var descricao = dadosDaResposta.RootElement.GetProperty("descricao").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(descricao));
+        Assert.That(descricao, Is.EqualTo(request.Descricao));
+
+        var palavrasChave = dadosDaResposta.RootElement.GetProperty("palavrasChave").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(palavrasChave));
+        Assert.That(palavrasChave, Is.EqualTo(request.PalavrasChave));
+
+        var status = dadosDaResposta.RootElement.GetProperty("status").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(status));
+        Assert.That(status, Is.EqualTo(request.Status));
+
+        var visibilidadeUsuarios = dadosDaResposta.RootElement.GetProperty("visibilidadeUsuarios").EnumerateArray();
+        Assert.That(visibilidadeUsuarios, Is.Not.Null);
+        Assert.That(visibilidadeUsuarios.ToListString(), Is.EquivalentTo(request.VisibilidadeUsuarios!));
+
+        var visibilidadeEquipes = dadosDaResposta.RootElement.GetProperty("visibilidadeEquipes").EnumerateArray();
+        Assert.That(visibilidadeEquipes, Is.Not.Null);
+        Assert.That(visibilidadeEquipes.ToListString(), Is.EquivalentTo(request.VisibilidadeEquipes!));
+
+        var expiraEm = dadosDaResposta.RootElement.GetProperty("expiraEm").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(expiraEm));
+        Assert.That(expiraEm, Is.EqualTo(request.ExpiraEm));
+
+        var organizacaoResposta = dadosDaResposta.RootElement.GetProperty("organizacao").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(organizacaoResposta));
+        Assert.That(organizacaoResposta, Is.EqualTo(request.Organizacao));
+
+        return new FfkApi.Domain.Entities.Feed
+        {
+            Id = Guid.Parse(id!),
+            Nome = nome!,
+            Descricao = descricao!,
+            PalavrasChave = palavrasChave!,
+            Status = EnumUtil.ConverterTextoParaEnum<StatusFeed>(status!),
+            VisibilidadeUsuarios = [],
+            VisibilidadeEquipes = [],
+            ExpiraEm = DateOnly.ParseExact(expiraEm!, "dd/MM/yyyy"),
+            IdOrganizacao = organizacao.Id,
+            Organizacao = organizacao
+        };
     }
 }

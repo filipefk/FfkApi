@@ -24,7 +24,7 @@ public class AdicionarAnexoFeedUseCaseTest
     }
 
     [Test]
-    public async Task Sucesso_Arquivo_Pequeno()
+    public async Task Sucesso_Administrador_Arquivo_Pequeno_E_Feed_De_Outra_Organizacao()
     {
         var cancellationToken = new CancellationTokenSource().Token;
 
@@ -35,7 +35,13 @@ public class AdicionarAnexoFeedUseCaseTest
 
         var request = RequestAdicionarAnexoFeedBuilder.Build(anexo, feed.Id.ToString());
 
-        var useCase = CriarUseCase(cancellationToken: cancellationToken, anexo: anexo, feed: feed);
+        var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken, 
+            usuarioLogado: usuarioLogado,
+            anexo: anexo, 
+            feed: feed);
 
         var response = await useCase.Execute(request, cancellationToken);
 
@@ -49,7 +55,7 @@ public class AdicionarAnexoFeedUseCaseTest
     }
 
     [Test]
-    public async Task Sucesso_Arquivo_Tamanho_Maximo()
+    public async Task Sucesso_Nao_Administrador_Arquivo_Tamanho_Maximo_E_Feed_Da_Mesma_Organizacao()
     {
         var cancellationToken = new CancellationTokenSource().Token;
 
@@ -60,7 +66,13 @@ public class AdicionarAnexoFeedUseCaseTest
 
         var request = RequestAdicionarAnexoFeedBuilder.Build(anexo, feed.Id.ToString());
 
-        var useCase = CriarUseCase(cancellationToken: cancellationToken, anexo: anexo, feed: feed);
+        var usuarioLogado = UsuarioBuilder.Build(organizacao: feed.Organizacao);
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            anexo: anexo, 
+            feed: feed);
 
         var response = await useCase.Execute(request, cancellationToken);
 
@@ -71,6 +83,35 @@ public class AdicionarAnexoFeedUseCaseTest
         Assert.That(response.Descricao, Is.EqualTo(request.Descricao));
         Assert.That(response.NomeArquivo, Is.EqualTo(request.Arquivo!.FileName));
         Assert.That(response.TamanhoBytes, Is.EqualTo(request.Arquivo.Length));
+    }
+
+    [Test]
+    public async Task Erro_Nao_Administrador_E_Feed_De_Outra_Organizacao()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var anexo = AnexoBuilder.Build();
+        anexo.TamanhoBytes = _tamanhoMaximoArquivo;
+
+        var feed = FeedBuilder.Build();
+
+        var request = RequestAdicionarAnexoFeedBuilder.Build(anexo, feed.Id.ToString());
+
+        var usuarioLogado = UsuarioBuilder.Build();
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            anexo: anexo,
+            feed: feed);
+
+        async Task func() => await useCase.Execute(request, cancellationToken);
+
+        var ex = await Task.Run(() => Assert.ThrowsAsync<ErrorOnValidationException>(async () => await func()));
+        Assert.That(ex, Is.Not.Null);
+        var mensagensDeErro = ex!.PegarMensagensDeErro();
+        Assert.That(mensagensDeErro.Count, Is.EqualTo(1));
+        Assert.That(mensagensDeErro, Contains.Item(ResourceMessagesException.FEED_NAO_ENCONTRADO));
     }
 
     [Test]
@@ -85,7 +126,12 @@ public class AdicionarAnexoFeedUseCaseTest
 
         var request = RequestAdicionarAnexoFeedBuilder.Build(anexo, feed.Id.ToString());
 
-        var useCase = CriarUseCase(cancellationToken: cancellationToken, anexo: anexo, feed: feed);
+        var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken, 
+            usuarioLogado: usuarioLogado,
+            anexo: anexo, feed: feed);
 
         async Task func() => await useCase.Execute(request, cancellationToken);
 
@@ -112,7 +158,12 @@ public class AdicionarAnexoFeedUseCaseTest
         var request = RequestAdicionarAnexoFeedBuilder.Build(anexo, feed.Id.ToString());
         request.Id = id;
 
-        var useCase = CriarUseCase(cancellationToken: cancellationToken, anexo: anexo, feed: feed);
+        var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken, 
+            usuarioLogado: usuarioLogado,
+            anexo: anexo, feed: feed);
 
         async Task func() => await useCase.Execute(request, cancellationToken);
 
@@ -139,7 +190,13 @@ public class AdicionarAnexoFeedUseCaseTest
         var request = RequestAdicionarAnexoFeedBuilder.Build(anexo, feed.Id.ToString());
         request.Id = id;
 
-        var useCase = CriarUseCase(cancellationToken: cancellationToken, anexo: anexo, feed: feed);
+        var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            anexo: anexo, 
+            feed: feed);
 
         async Task func() => await useCase.Execute(request, cancellationToken);
 
@@ -160,7 +217,12 @@ public class AdicionarAnexoFeedUseCaseTest
 
         var request = RequestAdicionarAnexoFeedBuilder.Build(anexo, Guid.NewGuid().ToString());
 
-        var useCase = CriarUseCase(cancellationToken: cancellationToken, anexo: anexo);
+        var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            anexo: anexo);
 
         async Task func() => await useCase.Execute(request, cancellationToken);
 
@@ -174,6 +236,7 @@ public class AdicionarAnexoFeedUseCaseTest
 
     private static AdicionarAnexoFeedUseCase CriarUseCase(
         CancellationToken cancellationToken,
+        FfkApi.Domain.Entities.Usuario usuarioLogado,
         FfkApi.Domain.Entities.Anexo anexo,
         FfkApi.Domain.Entities.Feed? feed = null)
     {
@@ -184,13 +247,14 @@ public class AdicionarAnexoFeedUseCaseTest
         if (feed != null)
         {
             feedRepository.SetupPegarFeedPorIdReturnsFeed(feed, cancellationToken);
-            feedRepository.SetupExisteFeedComIdReturnsTrue(feed.Id, cancellationToken);
+            feedRepository.SetupPegarFeedPorIdReturnsFeed(feed, feed.Organizacao.Id, cancellationToken);
         }
 
         return new AdicionarAnexoFeedUseCase(
             UnitOfWorkBuilder.Build(),
             MapperBuilder.Build(),
             salvarAnexoService.Build(),
-            feedRepository.Build());
+            feedRepository.Build(),
+            UsuarioLogadoServiceBuilder.Build(usuarioLogado, cancellationToken));
     }
 }

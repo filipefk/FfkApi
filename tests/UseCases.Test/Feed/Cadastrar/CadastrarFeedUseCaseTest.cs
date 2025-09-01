@@ -1,4 +1,6 @@
 using FfkApi.Application.UseCases.Feed.Cadastrar;
+using FfkApi.Communication.Requests;
+using FfkApi.Communication.Responses;
 using FfkApi.Exceptions;
 using FfkApi.Exceptions.ExceptionsBase;
 using NUnit.Framework;
@@ -14,27 +16,10 @@ namespace UnidadeUseCases.Test.Feed.Cadastrar;
 [Parallelizable(ParallelScope.All)]
 public class CadastrarFeedUseCaseTest
 {
-    [Test]
-    public async Task Sucesso()
+    private static void AssertResponseComRequest(ResponseDadosFeed? response, RequestCadastrarFeed request)
     {
-        var cancellationToken = new CancellationTokenSource().Token;
-
-        var request = RequestCadastrarFeedBuilder.Build();
-
-        var usuarioLogado = UsuarioBuilder.Build(permissoes: ["Cadastro de Feeds"]);
-        var organizacaoFeed = OrganizacaoBuilder.Build(nome: request.Organizacao!);
-        var equipeFeed = EquipeBuilder.Build(organizacao: organizacaoFeed);
-        var usuarioFeed = UsuarioBuilder.Build(organizacao: organizacaoFeed);
-
-        request.VisibilidadeUsuarios = [usuarioFeed.Email];
-        request.VisibilidadeEquipes = [equipeFeed.Nome];
-
-        var useCase = CriarUseCase(cancellationToken: cancellationToken, usuarioLogado: usuarioLogado, organizacaoFeed: organizacaoFeed, equipesFeed: [equipeFeed], usuariosFeed: [usuarioFeed]);
-
-        var response = await useCase.Execute(request, cancellationToken);
-
         Assert.That(response, Is.Not.Null);
-        Assert.That(response.Id, Is.Not.Null);
+        Assert.That(response!.Id, Is.Not.Null);
         Assert.That(response.Nome, Is.EqualTo(request.Nome));
         Assert.That(response.Descricao, Is.EqualTo(request.Descricao));
         Assert.That(response.PalavrasChave, Is.EqualTo(request.PalavrasChave));
@@ -46,13 +31,126 @@ public class CadastrarFeedUseCaseTest
     }
 
     [Test]
-    public async Task Erro_Organizacao_Nao_Encontrada()
+    public async Task Sucesso_Administrador_Cadastrando_Para_Outra_Organizacao()
     {
         var cancellationToken = new CancellationTokenSource().Token;
 
         var request = RequestCadastrarFeedBuilder.Build();
 
+        var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
+        var organizacaoFeed = OrganizacaoBuilder.Build(nome: request.Organizacao!);
+        var equipeFeed = EquipeBuilder.Build(organizacao: organizacaoFeed);
+        var usuarioFeed = UsuarioBuilder.Build(organizacao: organizacaoFeed);
+
+        request.VisibilidadeUsuarios = [usuarioFeed.Email];
+        request.VisibilidadeEquipes = [equipeFeed.Nome];
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken, 
+            usuarioLogado: usuarioLogado, 
+            organizacaoFeed: organizacaoFeed, 
+            equipesFeed: [equipeFeed], 
+            usuariosFeed: [usuarioFeed]);
+
+        var response = await useCase.Execute(request, cancellationToken);
+
+        AssertResponseComRequest(request: request, response: response);
+    }
+
+    [Test]
+    public async Task Sucesso_Nao_Administrador_Informando_A_Mesma_Organizacao()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var request = RequestCadastrarFeedBuilder.Build();
+
+        var organizacaoFeed = OrganizacaoBuilder.Build(nome: request.Organizacao!);
+        var usuarioLogado = UsuarioBuilder.Build(permissoes: ["Cadastro de Feeds"], organizacao: organizacaoFeed);
+        var equipeFeed = EquipeBuilder.Build(organizacao: organizacaoFeed);
+        var usuarioFeed = UsuarioBuilder.Build(organizacao: organizacaoFeed);
+
+        request.VisibilidadeUsuarios = [usuarioFeed.Email];
+        request.VisibilidadeEquipes = [equipeFeed.Nome];
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            organizacaoFeed: organizacaoFeed,
+            equipesFeed: [equipeFeed],
+            usuariosFeed: [usuarioFeed]);
+
+        var response = await useCase.Execute(request, cancellationToken);
+
+        AssertResponseComRequest(request: request, response: response);
+    }
+
+    [Test]
+    public async Task Sucesso_Nao_Administrador_Nao_Informando_Organizacao()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var request = RequestCadastrarFeedBuilder.Build();
+        request.Organizacao = null;
+
+        var organizacaoFeed = OrganizacaoBuilder.Build();
+        var usuarioLogado = UsuarioBuilder.Build(permissoes: ["Cadastro de Feeds"], organizacao: organizacaoFeed);
+        var equipeFeed = EquipeBuilder.Build(organizacao: organizacaoFeed);
+        var usuarioFeed = UsuarioBuilder.Build(organizacao: organizacaoFeed);
+
+        request.VisibilidadeUsuarios = [usuarioFeed.Email];
+        request.VisibilidadeEquipes = [equipeFeed.Nome];
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            organizacaoFeed: organizacaoFeed,
+            equipesFeed: [equipeFeed],
+            usuariosFeed: [usuarioFeed]);
+
+        var response = await useCase.Execute(request, cancellationToken);
+
+        AssertResponseComRequest(request: request, response: response);
+    }
+
+    [Test]
+    public async Task Erro_Nao_Administrador_Cadastrando_Para_Outra_Organizacao()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var request = RequestCadastrarFeedBuilder.Build();
+
+        var organizacaoFeed = OrganizacaoBuilder.Build(nome: request.Organizacao!);
         var usuarioLogado = UsuarioBuilder.Build(permissoes: ["Cadastro de Feeds"]);
+        var equipeFeed = EquipeBuilder.Build(organizacao: organizacaoFeed);
+        var usuarioFeed = UsuarioBuilder.Build(organizacao: organizacaoFeed);
+
+        request.VisibilidadeUsuarios = [usuarioFeed.Email];
+        request.VisibilidadeEquipes = [equipeFeed.Nome];
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            organizacaoFeed: organizacaoFeed,
+            equipesFeed: [equipeFeed],
+            usuariosFeed: [usuarioFeed]);
+
+        async Task func() => await useCase.Execute(request, cancellationToken);
+
+        var ex = await Task.Run(() => Assert.ThrowsAsync<ErrorOnValidationException>(async () => await func()));
+        Assert.That(ex, Is.Not.Null);
+        var mensagensDeErro = ex!.PegarMensagensDeErro();
+        Assert.That(mensagensDeErro.Count, Is.EqualTo(1));
+        Assert.That(mensagensDeErro, Contains.Item(ResourceMessagesException.ORGANIZACAO_NAO_ENCONTRADA));
+    }
+
+    [Test]
+    public async Task Erro_Administrador_Organizacao_Nao_Encontrada()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var request = RequestCadastrarFeedBuilder.Build();
+
+        var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
 
         request.VisibilidadeUsuarios = [];
         request.VisibilidadeEquipes = [];
@@ -75,8 +173,8 @@ public class CadastrarFeedUseCaseTest
 
         var request = RequestCadastrarFeedBuilder.Build();
 
-        var usuarioLogado = UsuarioBuilder.Build(permissoes: ["Cadastro de Feeds"]);
         var organizacaoFeed = OrganizacaoBuilder.Build(nome: request.Organizacao!);
+        var usuarioLogado = UsuarioBuilder.Build(permissoes: ["Cadastro de Feeds"], organizacao: organizacaoFeed);
         var usuarioFeed = UsuarioBuilder.Build(organizacao: organizacaoFeed);
 
         var nomeEquipe = "Equipe Inexistente";
@@ -102,8 +200,8 @@ public class CadastrarFeedUseCaseTest
 
         var request = RequestCadastrarFeedBuilder.Build();
 
-        var usuarioLogado = UsuarioBuilder.Build(permissoes: ["Cadastro de Feeds"]);
         var organizacaoFeed = OrganizacaoBuilder.Build(nome: request.Organizacao!);
+        var usuarioLogado = UsuarioBuilder.Build(permissoes: ["Cadastro de Feeds"], organizacao: organizacaoFeed);
         var equipeFeed = EquipeBuilder.Build(organizacao: organizacaoFeed);
 
         var emailUsuario = "email.inexistente@dominio.com";
@@ -111,7 +209,11 @@ public class CadastrarFeedUseCaseTest
         request.VisibilidadeUsuarios = [emailUsuario];
         request.VisibilidadeEquipes = [equipeFeed.Nome];
 
-        var useCase = CriarUseCase(cancellationToken: cancellationToken, usuarioLogado: usuarioLogado, organizacaoFeed: organizacaoFeed, equipesFeed: [equipeFeed]);
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken, 
+            usuarioLogado: usuarioLogado, 
+            organizacaoFeed: organizacaoFeed, 
+            equipesFeed: [equipeFeed]);
 
         async Task func() => await useCase.Execute(request, cancellationToken);
 
@@ -129,8 +231,8 @@ public class CadastrarFeedUseCaseTest
 
         var request = RequestCadastrarFeedBuilder.Build();
 
-        var usuarioLogado = UsuarioBuilder.Build(permissoes: ["Cadastro de Feeds"]);
         var organizacaoFeed = OrganizacaoBuilder.Build(nome: request.Organizacao!);
+        var usuarioLogado = UsuarioBuilder.Build(permissoes: ["Cadastro de Feeds"], organizacao: organizacaoFeed);
         var equipeFeed = EquipeBuilder.Build(organizacao: organizacaoFeed);
         var usuarioFeed = UsuarioBuilder.Build(organizacao: organizacaoFeed);
 

@@ -27,4 +27,9 @@ public class FeedRepositoryBuilder
     {
         _feedRepository.Setup(repository => repository.PegarFeedPorId(feed.Id, cancellationToken)).ReturnsAsync(feed);
     }
+
+    public void SetupPegarFeedPorIdReturnsFeed(Feed feed, Guid idOrganizacao, CancellationToken cancellationToken)
+    {
+        _feedRepository.Setup(repository => repository.PegarFeedPorId(feed.Id, idOrganizacao, cancellationToken)).ReturnsAsync(feed);
+    }
 }
