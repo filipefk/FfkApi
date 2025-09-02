@@ -1,5 +1,6 @@
 using FfkApi.API.BackgroundServices;
 using FfkApi.API.DebugUtil;
+using FfkApi.API.ExamplesProvider;
 using FfkApi.API.Filters;
 using FfkApi.API.HealthCheck;
 using FfkApi.API.Middleware;
@@ -54,6 +55,8 @@ if (!builder.Configuration.RodandoTesteEmMemoria())
     builder.Services.AddHealthChecks(builder.Configuration);
     builder.Services.AddHangfire(builder.Configuration);
 }
+
+builder.Services.AddAssemblySwaggerExamples();
 
 var app = builder.Build();
 

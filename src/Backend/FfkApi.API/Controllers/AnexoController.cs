@@ -12,6 +12,7 @@ namespace FfkApi.API.Controllers;
 
 [Route("[controller]")]
 [ApiController]
+[Produces("application/json")]
 public sealed class AnexoController : ControllerBase
 {
     [UsuarioAdministrador]

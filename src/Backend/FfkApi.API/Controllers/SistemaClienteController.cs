@@ -13,6 +13,7 @@ namespace FfkApi.API.Controllers;
 [Route("[controller]")]
 [ApiController]
 [UsuarioAdministrador]
+[Produces("application/json")]
 public sealed class SistemaClienteController : ControllerBase
 {
     [HttpPost]

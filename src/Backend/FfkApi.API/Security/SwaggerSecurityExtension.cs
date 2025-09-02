@@ -1,4 +1,6 @@
+using FfkApi.API.ExamplesProvider;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace FfkApi.API.Security;
 
@@ -65,6 +67,24 @@ public static class SwaggerSecurityExtension
                     new List<string>()
                 }
             });
+
+            var xmlFiles = new[]
+            {
+                "FfkApi.API.xml",
+                "FfkApi.Communication.xml"
+            };
+
+            foreach (var xmlFile in xmlFiles)
+            {
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                if (File.Exists(xmlPath))
+                {
+                    options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+                }
+            }
+
+            options.ExampleFilters();
+            options.OperationFilter<ConvertExampleToExamplesOperationFilter>();
         });
     }
 }
