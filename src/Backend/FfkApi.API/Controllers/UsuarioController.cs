@@ -400,7 +400,7 @@ public sealed class UsuarioController : ControllerBase
     /// 
     /// Exemplo de request:
     ///
-    ///     PUT /permissoes
+    ///     PUT /usuario/permissoes
     ///     {
     ///         "id": "c8711dc5-a6dc-4cc3-8e5e-08d8b03a5127",
     ///         "perfisAcesso": [
