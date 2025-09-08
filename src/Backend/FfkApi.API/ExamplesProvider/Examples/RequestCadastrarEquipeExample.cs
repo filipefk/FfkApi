@@ -1,5 +1,5 @@
-﻿using Swashbuckle.AspNetCore.Filters;
-using FfkApi.Communication.Requests;
+﻿using FfkApi.Communication.Requests;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace FfkApi.API.ExamplesProvider.Examples;
 

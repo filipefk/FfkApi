@@ -1,5 +1,4 @@
 ﻿using FfkApi.Communication.Responses;
-using FfkApi.Exceptions;
 using Swashbuckle.AspNetCore.Filters;
 
 namespace FfkApi.API.ExamplesProvider.Examples;
