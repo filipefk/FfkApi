@@ -1,7 +1,7 @@
 ﻿using FfkApi.Communication.Responses;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace FfkApi.API.ExamplesProvider.Examples;
+namespace FfkApi.API.Documentation.Examples;
 
 public class Response200OKPesquisarEquipeExample : IExamplesProvider<ResponsePaginado<ResponseDadosEquipe>>
 {
@@ -11,7 +11,7 @@ public class Response200OKPesquisarEquipeExample : IExamplesProvider<ResponsePag
         {
             new ResponseDadosEquipe
             {
-                Id = Guid.Parse("4461f30a-d642-4dd6-8c1f-15f715af87c7"),
+                Id = Guid.NewGuid(),
                 Nome = "Equipe Atlas",
                 Descricao = "A equipe que carrega o mundo nas costas",
                 Status = "Ativa",
@@ -20,12 +20,16 @@ public class Response200OKPesquisarEquipeExample : IExamplesProvider<ResponsePag
                 {
                     new ResponseMembroEquipe
                     {
+                        Id = Guid.NewGuid(),
+                        IdUsuario = Guid.NewGuid(),
                         Nome = "Alexys",
                         Email = "Alexys.Fahey15@gmail.com",
                         Lider = false
                     },
                     new ResponseMembroEquipe
                     {
+                        Id = Guid.NewGuid(),
+                        IdUsuario = Guid.NewGuid(),
                         Nome = "Ally",
                         Email = "Ally_Upton87@hotmail.com",
                         Lider = true
@@ -34,7 +38,7 @@ public class Response200OKPesquisarEquipeExample : IExamplesProvider<ResponsePag
             },
             new ResponseDadosEquipe
             {
-                Id = Guid.Parse("cea07de3-8f36-4eca-b2f0-3e3b97f1bbad"),
+                Id = Guid.NewGuid(),
                 Nome = "Equipe Lobo",
                 Descricao = "A equipe que trabalha como uma matilha",
                 Status = "Ativa",
@@ -43,12 +47,16 @@ public class Response200OKPesquisarEquipeExample : IExamplesProvider<ResponsePag
                 {
                     new ResponseMembroEquipe
                     {
+                        Id = Guid.NewGuid(),
+                        IdUsuario = Guid.NewGuid(),
                         Nome = "Alysha",
                         Email = "Alysha.Swaniawski1@yahoo.com",
                         Lider = true
                     },
                     new ResponseMembroEquipe
                     {
+                        Id = Guid.NewGuid(),
+                        IdUsuario = Guid.NewGuid(),
                         Nome = "Ernesto",
                         Email = "Ernesto20@yahoo.com",
                         Lider = false

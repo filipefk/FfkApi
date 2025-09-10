@@ -2,7 +2,7 @@
 using FfkApi.Exceptions;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace FfkApi.API.ExamplesProvider.Examples;
+namespace FfkApi.API.Documentation.Examples;
 
 public class ResponseErro400BadRequestCadastrarEquipeExample : IExamplesProvider<ResponseErro>
 {

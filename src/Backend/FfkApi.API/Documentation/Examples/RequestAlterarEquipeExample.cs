@@ -1,7 +1,7 @@
 ﻿using FfkApi.Communication.Requests;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace FfkApi.API.ExamplesProvider.Examples;
+namespace FfkApi.API.Documentation.Examples;
 
 public class RequestAlterarEquipeExample : IExamplesProvider<RequestAlterarEquipe>
 {
@@ -9,7 +9,7 @@ public class RequestAlterarEquipeExample : IExamplesProvider<RequestAlterarEquip
     {
         return new RequestAlterarEquipe
         {
-            Id = "3d81ab48-2337-488b-835f-27ad083967cb",
+            Id = Guid.NewGuid().ToString(),
             Nome = "Equipe Pescadores",
             Descricao = "O mar sempre tem razão",
             Status = "Ativa",

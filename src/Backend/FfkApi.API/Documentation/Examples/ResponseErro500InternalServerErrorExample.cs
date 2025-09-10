@@ -2,17 +2,17 @@
 using FfkApi.Exceptions;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace FfkApi.API.ExamplesProvider.Examples;
+namespace FfkApi.API.Documentation.Examples;
 
-public class ResponseErro401UnauthorizedExample : IExamplesProvider<ResponseErro>
+public class ResponseErro500InternalServerErrorExample : IExamplesProvider<ResponseErro>
 {
     public ResponseErro GetExamples()
     {
         var responseErro = new ResponseErro([
-            ResourceMessagesException.TOKEN_EXPIRADO
+            ResourceMessagesException.ERRO_DESCONHECIDO
         ])
         {
-            TokenEstaExpirado = true
+            TokenEstaExpirado = false
         };
         return responseErro;
     }

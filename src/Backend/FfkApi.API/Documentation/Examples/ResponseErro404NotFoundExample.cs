@@ -2,14 +2,14 @@
 using FfkApi.Exceptions;
 using Swashbuckle.AspNetCore.Filters;
 
-namespace FfkApi.API.ExamplesProvider.Examples;
+namespace FfkApi.API.Documentation.Examples;
 
-public class ResponseErro403ForbiddenExample : IExamplesProvider<ResponseErro>
+public class ResponseErro404NotFoundExample : IExamplesProvider<ResponseErro>
 {
     public ResponseErro GetExamples()
     {
         var responseErro = new ResponseErro([
-            ResourceMessagesException.SEM_PERMISSAO.Replace("{permissao}", "Cadastro de Equipes")
+            ResourceMessagesException.EQUIPE_NAO_ENCONTRADA
         ])
         {
             TokenEstaExpirado = false

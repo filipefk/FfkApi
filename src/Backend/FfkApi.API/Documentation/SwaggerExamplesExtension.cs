@@ -1,13 +1,13 @@
 ﻿using Swashbuckle.AspNetCore.Filters;
 using System.Reflection;
 
-namespace FfkApi.API.ExamplesProvider;
+namespace FfkApi.API.Documentation;
 
 public static class SwaggerExamplesExtension
 {
     public static void AddAssemblySwaggerExamples(this IServiceCollection services)
     {
-        AddSwaggerExamplesListaNamespace(services, "FfkApi.API.ExamplesProvider.Examples");
+        AddSwaggerExamplesListaNamespace(services, "FfkApi.API.Documentation.Examples");
     }
 
     private static void AddSwaggerExamplesListaNamespace(IServiceCollection services, string strNamespace)

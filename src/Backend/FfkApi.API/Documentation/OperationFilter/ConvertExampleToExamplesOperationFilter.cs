@@ -2,7 +2,7 @@
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
-namespace FfkApi.API.ExamplesProvider;
+namespace FfkApi.API.Documentation.OperationFilter;
 
 public class ConvertExampleToExamplesOperationFilter : IOperationFilter
 {

@@ -1,4 +1,4 @@
-using FfkApi.API.ExamplesProvider;
+using FfkApi.API.Documentation.OperationFilter;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.Filters;
 
@@ -6,7 +6,7 @@ namespace FfkApi.API.Security;
 
 public static class SwaggerSecurityExtension
 {
-    public static void AddSwaggerSecurity(this IServiceCollection services)
+    public static void AddSwaggerSecurity(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSwaggerGen(options =>
         {
@@ -85,6 +85,7 @@ public static class SwaggerSecurityExtension
 
             options.ExampleFilters();
             options.OperationFilter<ConvertExampleToExamplesOperationFilter>();
+            options.OperationFilter<ErrorDocsOperationFilter>(configuration);
         });
     }
 }
