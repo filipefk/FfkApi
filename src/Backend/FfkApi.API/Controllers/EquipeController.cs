@@ -10,6 +10,8 @@ using FfkApi.Communication.Responses;
 using Microsoft.AspNetCore.Mvc;
 using Swashbuckle.AspNetCore.Filters;
 
+namespace FfkApi.API.Controllers;
+
 [Route("[controller]")]
 [ApiController]
 [Produces("application/json")]
@@ -111,7 +113,7 @@ public sealed class EquipeController : ControllerBase
     /// /equipe - Pesquisar Equipe
     /// </summary>
     /// <remarks>
-    /// Endpoint utilizado quando se pesquisar uma Equipe existente. Funciona com OData
+    /// Endpoint utilizado quando se deseja pesquisar uma Equipe existente. Funciona com OData
     /// </remarks>
     /// <response code="200">Pesquisa realizada com sucesso</response>
     /// <response code="500">Erro interno ao realizar a pesquisa</response>
