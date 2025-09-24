@@ -13,6 +13,7 @@ namespace FfkApi.API.Controllers;
 [Route("[controller]")]
 [ApiController]
 [UsuarioAutenticado]
+[Produces("application/json")]
 public sealed class IndisponibilidadeController : ControllerBase
 {
     [HttpPost]

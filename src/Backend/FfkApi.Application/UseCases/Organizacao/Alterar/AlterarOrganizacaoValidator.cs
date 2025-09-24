@@ -1,5 +1,4 @@
 using FfkApi.Application.Validators;
-using FfkApi.Communication.Requests;
 using FfkApi.Exceptions;
 using FluentValidation;
 

@@ -11,6 +11,5 @@ public static class DataInitializationExtension
         using var scope = serviceProvider.CreateScope();
         var dbContext = scope.ServiceProvider.GetRequiredService<FfkApiDbContext>();
         DadosIniciais.Cadastrar(dbContext);
-        //DadosDeTeste.Cadastrar(dbContext);
     }
 }

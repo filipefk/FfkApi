@@ -14,8 +14,19 @@ namespace FfkApi.API.Controllers;
 
 [Route("[controller]")]
 [ApiController]
+[Produces("application/json")]
 public sealed class OrganizacaoController : ControllerBase
 {
+    /// <summary>
+    /// /organizacao - Cadastrar organização
+    /// </summary>
+    /// <remarks>
+    /// Endpoint utilizado quando se deseja cadastrar uma nova organização.
+    /// </remarks>
+    /// <response code="201">Organização criada com sucesso</response>
+    /// <response code="400">Erro de validação nos dados enviados</response>
+    /// <response code="401">Erro de validação do token do usuário</response>
+    /// <response code="403">Usuário sem permissão para executar esta operação</response>
     [UsuarioAdministrador]
     [HttpPost]
     [ProducesResponseType(typeof(ResponseDadosOrganizacao), StatusCodes.Status201Created)]
@@ -31,6 +42,17 @@ public sealed class OrganizacaoController : ControllerBase
         return Created(string.Empty, response);
     }
 
+    /// <summary>
+    /// /organizacao/lote - Cadastrar organizações em lote
+    /// </summary>
+    /// <remarks>
+    /// Endpoint utilizado para cadastrar múltiplas organizações de uma só vez.
+    /// </remarks>
+    /// <response code="201">Todas as organizações foram cadastradas com sucesso</response>
+    /// <response code="200">Algumas organizações foram cadastradas com sucesso, outras falharam</response>
+    /// <response code="400">Falha ao cadastrar as organizações ou erro de validação dos dados</response>
+    /// <response code="401">Erro de validação do token do sistema cliente</response>
+    /// <response code="403">Sistema Cliente sem permissão para executar esta operação</response>
     [SistemaClienteAutenticado]
     [HttpPost("lote")]
     [ProducesResponseType(typeof(ResponseCadastrarEmLote<RequestCadastrarOrganizacao, ResponseDadosOrganizacao>), StatusCodes.Status201Created)]
@@ -60,6 +82,16 @@ public sealed class OrganizacaoController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// /organizacao - Alterar organização
+    /// </summary>
+    /// <remarks>
+    /// Endpoint utilizado para alterar os dados de uma organização existente.
+    /// </remarks>
+    /// <response code="204">Organização alterada com sucesso</response>
+    /// <response code="400">Erro de validação nos dados enviados</response>
+    /// <response code="401">Erro de validação do token do usuário</response>
+    /// <response code="403">Usuário sem permissão para executar esta operação</response>
     [UsuarioAdministrador]
     [HttpPut]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -75,6 +107,16 @@ public sealed class OrganizacaoController : ControllerBase
         return NoContent();
     }
 
+    /// <summary>
+    /// /organizacao/{id} - Consultar organização
+    /// </summary>
+    /// <remarks>
+    /// Endpoint utilizado para consultar os dados de uma organização pelo seu identificador.
+    /// </remarks>
+    /// <response code="200">Organização encontrada com sucesso</response>
+    /// <response code="400">Identificador inválido</response>
+    /// <response code="401">Erro de validação do token do usuário</response>
+    /// <response code="404">Organização não encontrada</response>
     [UsuarioAdministrador]
     [HttpGet("{id}")]
     [ProducesResponseType(typeof(ResponseDadosOrganizacao), StatusCodes.Status200OK)]
@@ -94,6 +136,16 @@ public sealed class OrganizacaoController : ControllerBase
         return Ok(response);
     }
 
+    /// <summary>
+    /// /organizacao/pesquisar - Pesquisar organizações
+    /// </summary>
+    /// <remarks>
+    /// Endpoint utilizado para pesquisar organizações utilizando filtros e paginação.
+    /// </remarks>
+    /// <response code="200">Pesquisa realizada com sucesso</response>
+    /// <response code="500">Erro interno ao realizar a pesquisa</response>
+    /// <response code="404">Nenhuma organização encontrada</response>
+    /// <response code="401">Erro de validação do token do usuário</response>
     [UsuarioAdministrador]
     [HttpGet("pesquisar")]
     [ProducesResponseType(typeof(ResponsePaginado<ResponseDadosOrganizacao>), StatusCodes.Status200OK)]
@@ -109,6 +161,17 @@ public sealed class OrganizacaoController : ControllerBase
         return Ok(response);
     }
 
+    /// <summary>
+    /// /organizacao/{id} - Excluir organização
+    /// </summary>
+    /// <remarks>
+    /// Endpoint utilizado para excluir uma organização pelo seu identificador.
+    /// </remarks>
+    /// <response code="204">Organização excluída com sucesso</response>
+    /// <response code="400">Identificador inválido</response>
+    /// <response code="401">Erro de validação do token do usuário</response>
+    /// <response code="403">Usuário sem permissão para executar esta operação</response>
+    /// <response code="404">Organização não encontrada</response>
     [UsuarioAdministrador]
     [HttpDelete("{id}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
