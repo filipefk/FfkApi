@@ -78,7 +78,7 @@ public class AdicionarAnexoFeedUseCase : IAdicionarAnexoFeedUseCase
     {
         if (string.IsNullOrWhiteSpace(request.Id))
             return [ResourceMessagesException.ID_VAZIO];
-        
+
         if (!IdValidator.IdEstaValido(request.Id))
             return [ResourceMessagesException.ID_INVALIDO];
 

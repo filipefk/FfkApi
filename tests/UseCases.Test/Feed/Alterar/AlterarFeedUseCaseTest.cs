@@ -65,9 +65,9 @@ public class AlterarFeedUseCaseTest
         var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
 
         var useCase = CriarUseCase(
-            cancellationToken: cancellationToken, 
-            usuarioLogado: usuarioLogado, 
-            feedAlteracao: feedAlteracao, 
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            feedAlteracao: feedAlteracao,
             organizacaoFeed: organizacaoRequest);
 
         async Task func() => await useCase.Execute(request, cancellationToken);
@@ -231,8 +231,8 @@ public class AlterarFeedUseCaseTest
         var useCase = CriarUseCase(
             cancellationToken: cancellationToken,
             usuarioLogado: usuarioLogado,
-            organizacaoFeed: organizacaoFeed, 
-            equipesFeed: [equipeFeed], 
+            organizacaoFeed: organizacaoFeed,
+            equipesFeed: [equipeFeed],
             usuariosFeed: [usuarioFeed]);
 
         async Task func() => await useCase.Execute(request, cancellationToken);
@@ -296,7 +296,7 @@ public class AlterarFeedUseCaseTest
         var useCase = CriarUseCase(
             cancellationToken: cancellationToken,
             usuarioLogado: usuarioLogado,
-            feedAlteracao: feedAlteracao, 
+            feedAlteracao: feedAlteracao,
             organizacaoFeed: organizacaoFeed,
             usuariosFeed: [usuarioFeed]);
 
@@ -332,8 +332,8 @@ public class AlterarFeedUseCaseTest
         var useCase = CriarUseCase(
             cancellationToken: cancellationToken,
             usuarioLogado: usuarioLogado,
-            feedAlteracao: feedAlteracao, 
-            organizacaoFeed: organizacaoFeed, 
+            feedAlteracao: feedAlteracao,
+            organizacaoFeed: organizacaoFeed,
             equipesFeed: [equipeFeed]);
 
         async Task func() => await useCase.Execute(request, cancellationToken);
@@ -367,9 +367,9 @@ public class AlterarFeedUseCaseTest
         var useCase = CriarUseCase(
             cancellationToken: cancellationToken,
             usuarioLogado: usuarioLogado,
-            feedAlteracao: feedAlteracao, 
-            organizacaoFeed: organizacaoFeed, 
-            equipesFeed: [equipeFeed], 
+            feedAlteracao: feedAlteracao,
+            organizacaoFeed: organizacaoFeed,
+            equipesFeed: [equipeFeed],
             usuariosFeed: [usuarioFeed]);
 
         async Task func() => await useCase.Execute(request, cancellationToken);

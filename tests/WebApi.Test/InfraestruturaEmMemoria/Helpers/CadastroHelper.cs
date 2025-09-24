@@ -2,6 +2,7 @@ using FfkApi.Domain.Entities;
 using FfkApi.Domain.Enums;
 using NUnit.Framework;
 using System.Net;
+using TestUtil.Entities;
 using TestUtil.Extension;
 using TestUtil.HttpUtil;
 using TestUtil.Requests;
@@ -157,8 +158,10 @@ public class CadastroHelper
 
     public async Task<FfkApi.Domain.Entities.Feed> CadastrarNovoFeed(
         FfkApi.Domain.Entities.Usuario usuarioLogin,
-        FfkApi.Domain.Entities.Organizacao? organizacao = null)
+        FfkApi.Domain.Entities.Organizacao? organizacao = null,
+        int quantAnexos = 0)
     {
+        const long _tamanhoMaximoArquivo = 1024;
         organizacao ??= usuarioLogin.Organizacao;
 
         var cancellationToken = new CancellationTokenSource().Token;
@@ -211,7 +214,7 @@ public class CadastroHelper
         Assert.That(!string.IsNullOrWhiteSpace(organizacaoResposta));
         Assert.That(organizacaoResposta, Is.EqualTo(request.Organizacao));
 
-        return new FfkApi.Domain.Entities.Feed
+        var novoFeed = new FfkApi.Domain.Entities.Feed
         {
             Id = Guid.Parse(id!),
             Nome = nome!,
@@ -224,5 +227,44 @@ public class CadastroHelper
             IdOrganizacao = organizacao.Id,
             Organizacao = organizacao
         };
+
+        for (int i = 0; i < quantAnexos; i++)
+        {
+            var anexo = AnexoBuilder.Build();
+            anexo.TamanhoBytes = (long)(_tamanhoMaximoArquivo * 0.01);
+
+            var requestAnexoFeed = RequestAdicionarAnexoFeedBuilder.Build(anexo, novoFeed.Id.ToString());
+
+            response = await _httpHelper.DoPostCadastrarAnexo(url: "feed/anexo", request: requestAnexoFeed, token: token, cancellationToken: cancellationToken);
+
+            Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+
+            dadosDaResposta = await HttpResponseUtil.PegarDadosDaResposta(response);
+
+            id = dadosDaResposta.RootElement.GetProperty("id").GetString();
+            Assert.That(!string.IsNullOrWhiteSpace(id));
+
+            nome = dadosDaResposta.RootElement.GetProperty("nome").GetString();
+            Assert.That(!string.IsNullOrWhiteSpace(nome));
+            Assert.That(nome, Is.EqualTo(requestAnexoFeed.Nome));
+
+            descricao = dadosDaResposta.RootElement.GetProperty("descricao").GetString();
+            Assert.That(!string.IsNullOrWhiteSpace(descricao));
+            Assert.That(descricao, Is.EqualTo(requestAnexoFeed.Descricao));
+
+            var nomeArquivo = dadosDaResposta.RootElement.GetProperty("nomeArquivo").GetString();
+            Assert.That(!string.IsNullOrWhiteSpace(nomeArquivo));
+            Assert.That(nomeArquivo, Is.EqualTo(requestAnexoFeed.Arquivo!.FileName));
+
+            var tamanhoBytes = dadosDaResposta.RootElement.GetProperty("tamanhoBytes").GetInt64();
+            Assert.That(tamanhoBytes, Is.Not.Null);
+            Assert.That(tamanhoBytes, Is.EqualTo(requestAnexoFeed.Arquivo.Length));
+
+            anexo.Id = Guid.Parse(id!);
+
+            novoFeed.Anexos.Add(anexo);
+        }
+
+        return novoFeed;
     }
 }

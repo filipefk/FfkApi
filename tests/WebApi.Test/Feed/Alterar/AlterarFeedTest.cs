@@ -1,10 +1,8 @@
-using FfkApi.Domain.Enums;
 using FfkApi.Domain.Extension;
 using FfkApi.Exceptions;
 using Integracao.Test.InfraestruturaEmMemoria;
 using NUnit.Framework;
 using System.Net;
-using TestUtil.Extension;
 using TestUtil.HttpUtil;
 using TestUtil.Requests;
 using TestUtil.Tokens;
@@ -44,7 +42,7 @@ public class AlterarFeedTest : FfkApiClassFixture
         var token = GeradorTokenUsuarioBuilder.Build().Gerar(_usuarioAdministrador.Id);
 
         var feed = await CadastroHelper.CadastrarNovoFeed(
-            usuarioLogin: _usuarioAdministrador, 
+            usuarioLogin: _usuarioAdministrador,
             organizacao: _organizacaoNova);
 
         var request = RequestAlterarFeedBuilder.Build(feed);
@@ -123,7 +121,7 @@ public class AlterarFeedTest : FfkApiClassFixture
         var token = GeradorTokenUsuarioBuilder.Build().Gerar(_usuarioPermissaoCadastroFeeds.Id);
 
         var feedNovo = await CadastroHelper.CadastrarNovoFeed(
-            usuarioLogin: _usuarioAdministrador, 
+            usuarioLogin: _usuarioAdministrador,
             organizacao: _organizacaoNova);
 
         var request = RequestAlterarFeedBuilder.Build(feedNovo);
@@ -282,9 +280,11 @@ public class AlterarFeedTest : FfkApiClassFixture
 
         var token = GeradorTokenUsuarioBuilder.Build().Gerar(_usuarioAdministrador.Id);
 
-        var request = RequestAlterarFeedBuilder.Build();
-        request.Id = _feedNovo.Id.ToString();
-        request.Organizacao = _organizacaoNova.Nome;
+        var novoFeed = await CadastroHelper.CadastrarNovoFeed(
+            usuarioLogin: _usuarioAdministrador,
+            organizacao: _organizacaoNova);
+
+        var request = RequestAlterarFeedBuilder.Build(novoFeed);
         request.VisibilidadeEquipes = [_equipeNova.Nome];
         request.VisibilidadeUsuarios = [];
 
@@ -334,9 +334,11 @@ public class AlterarFeedTest : FfkApiClassFixture
 
         var token = GeradorTokenUsuarioBuilder.Build().Gerar(_usuarioAdministrador.Id);
 
-        var request = RequestAlterarFeedBuilder.Build();
-        request.Id = _feedNovo.Id.ToString();
-        request.Organizacao = _organizacaoNova.Nome;
+        var novoFeed = await CadastroHelper.CadastrarNovoFeed(
+            usuarioLogin: _usuarioAdministrador,
+            organizacao: _organizacaoNova);
+
+        var request = RequestAlterarFeedBuilder.Build(novoFeed);
         request.VisibilidadeEquipes = [];
         request.VisibilidadeUsuarios = [_usuarioSemPerfilNemPermissao.Email];
 

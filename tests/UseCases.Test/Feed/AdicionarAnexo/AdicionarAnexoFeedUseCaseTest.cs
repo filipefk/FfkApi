@@ -38,9 +38,9 @@ public class AdicionarAnexoFeedUseCaseTest
         var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
 
         var useCase = CriarUseCase(
-            cancellationToken: cancellationToken, 
+            cancellationToken: cancellationToken,
             usuarioLogado: usuarioLogado,
-            anexo: anexo, 
+            anexo: anexo,
             feed: feed);
 
         var response = await useCase.Execute(request, cancellationToken);
@@ -71,7 +71,7 @@ public class AdicionarAnexoFeedUseCaseTest
         var useCase = CriarUseCase(
             cancellationToken: cancellationToken,
             usuarioLogado: usuarioLogado,
-            anexo: anexo, 
+            anexo: anexo,
             feed: feed);
 
         var response = await useCase.Execute(request, cancellationToken);
@@ -129,7 +129,7 @@ public class AdicionarAnexoFeedUseCaseTest
         var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
 
         var useCase = CriarUseCase(
-            cancellationToken: cancellationToken, 
+            cancellationToken: cancellationToken,
             usuarioLogado: usuarioLogado,
             anexo: anexo, feed: feed);
 
@@ -161,7 +161,7 @@ public class AdicionarAnexoFeedUseCaseTest
         var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
 
         var useCase = CriarUseCase(
-            cancellationToken: cancellationToken, 
+            cancellationToken: cancellationToken,
             usuarioLogado: usuarioLogado,
             anexo: anexo, feed: feed);
 
@@ -195,7 +195,7 @@ public class AdicionarAnexoFeedUseCaseTest
         var useCase = CriarUseCase(
             cancellationToken: cancellationToken,
             usuarioLogado: usuarioLogado,
-            anexo: anexo, 
+            anexo: anexo,
             feed: feed);
 
         async Task func() => await useCase.Execute(request, cancellationToken);

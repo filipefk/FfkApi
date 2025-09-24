@@ -46,10 +46,10 @@ public class CadastrarFeedUseCaseTest
         request.VisibilidadeEquipes = [equipeFeed.Nome];
 
         var useCase = CriarUseCase(
-            cancellationToken: cancellationToken, 
-            usuarioLogado: usuarioLogado, 
-            organizacaoFeed: organizacaoFeed, 
-            equipesFeed: [equipeFeed], 
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            organizacaoFeed: organizacaoFeed,
+            equipesFeed: [equipeFeed],
             usuariosFeed: [usuarioFeed]);
 
         var response = await useCase.Execute(request, cancellationToken);
@@ -210,9 +210,9 @@ public class CadastrarFeedUseCaseTest
         request.VisibilidadeEquipes = [equipeFeed.Nome];
 
         var useCase = CriarUseCase(
-            cancellationToken: cancellationToken, 
-            usuarioLogado: usuarioLogado, 
-            organizacaoFeed: organizacaoFeed, 
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            organizacaoFeed: organizacaoFeed,
             equipesFeed: [equipeFeed]);
 
         async Task func() => await useCase.Execute(request, cancellationToken);

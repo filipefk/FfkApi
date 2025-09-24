@@ -132,7 +132,7 @@ public class ExcluirFeedUseCaseTest
         var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
 
         var useCase = CriarUseCase(
-            cancellationToken: cancellationToken, 
+            cancellationToken: cancellationToken,
             usuarioLogado: usuarioLogado,
             feed: feed);
 
@@ -163,7 +163,7 @@ public class ExcluirFeedUseCaseTest
         var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
 
         var useCase = CriarUseCase(
-            cancellationToken: cancellationToken, 
+            cancellationToken: cancellationToken,
             usuarioLogado: usuarioLogado,
             feed: feed);
 
