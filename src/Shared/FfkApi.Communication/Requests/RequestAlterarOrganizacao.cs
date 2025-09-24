@@ -1,3 +1,5 @@
+namespace FfkApi.Communication.Requests;
+
 /// <summary>
 /// Representa uma requisição para alterar uma organização existente.
 /// </summary>

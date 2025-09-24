@@ -1,4 +1,5 @@
-﻿using Microsoft.OpenApi.Models;
+﻿using FfkApi.API.Controllers;
+using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace FfkApi.API.Documentation.OperationFilter;
@@ -15,7 +16,7 @@ public class ErrorDocsOperationFilter : IOperationFilter
     public void Apply(OpenApiOperation operation, OperationFilterContext context)
     {
         var controllerType = context.MethodInfo.DeclaringType;
-        if (controllerType == null || controllerType.Name != "EquipeController")
+        if (controllerType == null || controllerType.Name != nameof(EquipeController))
             return;
 
         var url = _configuration["Configuracoes:UrlsPortalDesenvolvedor:CodigosDeErro"];
