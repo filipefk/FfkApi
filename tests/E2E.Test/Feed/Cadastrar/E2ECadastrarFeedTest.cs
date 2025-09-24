@@ -1,5 +1,7 @@
+using FfkApi.Communication.Requests;
 using FfkApi.Exceptions;
 using System.Net;
+using System.Text.Json;
 using TestUtil.Extension;
 using TestUtil.HttpUtil;
 using TestUtil.Requests;
@@ -12,29 +14,8 @@ namespace Aceitacao.Test.Feed.Cadastrar;
 public class E2ECadastrarFeedTest : E2EClassFixture
 {
     private readonly string _baseUrlFeed = "feed";
-
-    [Test]
-    public async Task Sucesso_Administrador()
+    private static void AssertDadosDaRespostaComRequest(JsonDocument dadosDaResposta, RequestCadastrarFeed request)
     {
-        var cancellationToken = new CancellationTokenSource().Token;
-
-        var token = GeradorTokenUsuarioBuilder.Build().Gerar(_usuarioAdministrador.Id);
-
-        var novaEquipe = await CadastroHelper.CadastrarNovaEquipe(
-            organizacao: _usuarioAdministrador.Organizacao,
-            usuariosEquipe: []);
-
-        var request = RequestCadastrarFeedBuilder.Build();
-        request.Organizacao = _usuarioAdministrador.Organizacao.Nome;
-        request.VisibilidadeEquipes = [novaEquipe.Nome];
-        request.VisibilidadeUsuarios = [_usuarioSemPerfilNemPermissao.Email];
-
-        var response = await HttpHelper.DoPost(url: _baseUrlFeed, request: request, token: token, cancellationToken: cancellationToken);
-
-        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
-
-        var dadosDaResposta = await HttpResponseUtil.PegarDadosDaResposta(response);
-
         Assert.That(!string.IsNullOrWhiteSpace(dadosDaResposta.RootElement.GetProperty("id").GetString()));
 
         var nome = dadosDaResposta.RootElement.GetProperty("nome").GetString();
@@ -75,20 +56,46 @@ public class E2ECadastrarFeedTest : E2EClassFixture
     }
 
     [Test]
-    public async Task Sucesso_Usuario_Com_Permissao()
+    public async Task Sucesso_Administrador_Cadastrando_Para_Outra_Organizacao()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var token = GeradorTokenUsuarioBuilder.Build().Gerar(_usuarioAdministrador.Id);
+
+        var organizacaoNova = await CadastroHelper.CadastrarNovaOrganizacao();
+        var novaEquipe = await CadastroHelper.CadastrarNovaEquipe(
+            organizacao: organizacaoNova,
+            usuariosEquipe: []);
+
+        var request = RequestCadastrarFeedBuilder.Build();
+        request.Organizacao = organizacaoNova.Nome;
+        request.VisibilidadeEquipes = [novaEquipe.Nome];
+        request.VisibilidadeUsuarios = [];
+
+        var response = await HttpHelper.DoPost(url: _baseUrlFeed, request: request, token: token, cancellationToken: cancellationToken);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
+
+        var dadosDaResposta = await HttpResponseUtil.PegarDadosDaResposta(response);
+
+        AssertDadosDaRespostaComRequest(dadosDaResposta, request);
+    }
+
+    [Test]
+    public async Task Sucesso_Usuario_Com_Permissao_Sem_Informar_Organizacao()
     {
         var cancellationToken = new CancellationTokenSource().Token;
 
         var usuarioPermissaoCadastroFeeds = await CadastroHelper.CadastrarNovoUsuario(permissoes: ["Cadastro de Feeds"], ativar: true);
 
         var novaEquipe = await CadastroHelper.CadastrarNovaEquipe(
-            organizacao: _usuarioAdministrador.Organizacao,
+            organizacao: usuarioPermissaoCadastroFeeds.Organizacao,
             usuariosEquipe: []);
 
         var token = GeradorTokenUsuarioBuilder.Build().Gerar(usuarioPermissaoCadastroFeeds.Id);
 
         var request = RequestCadastrarFeedBuilder.Build();
-        request.Organizacao = _usuarioAdministrador.Organizacao.Nome;
+        request.Organizacao = null;
         request.VisibilidadeEquipes = [novaEquipe.Nome];
         request.VisibilidadeUsuarios = [_usuarioSemPerfilNemPermissao.Email];
 
@@ -98,39 +105,63 @@ public class E2ECadastrarFeedTest : E2EClassFixture
 
         var dadosDaResposta = await HttpResponseUtil.PegarDadosDaResposta(response);
 
-        Assert.That(!string.IsNullOrWhiteSpace(dadosDaResposta.RootElement.GetProperty("id").GetString()));
+        request.Organizacao = usuarioPermissaoCadastroFeeds.Organizacao.Nome;
+        AssertDadosDaRespostaComRequest(dadosDaResposta, request);
+    }
 
-        var nome = dadosDaResposta.RootElement.GetProperty("nome").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(nome));
-        Assert.That(nome, Is.EqualTo(request.Nome));
+    [Test]
+    public async Task Sucesso_Usuario_Com_Permissao_Informando_A_Propria_Organizacao()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
 
-        var descricao = dadosDaResposta.RootElement.GetProperty("descricao").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(descricao));
-        Assert.That(descricao, Is.EqualTo(request.Descricao));
+        var usuarioPermissaoCadastroFeeds = await CadastroHelper.CadastrarNovoUsuario(permissoes: ["Cadastro de Feeds"], ativar: true);
 
-        var palavrasChave = dadosDaResposta.RootElement.GetProperty("palavrasChave").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(palavrasChave));
-        Assert.That(palavrasChave, Is.EqualTo(request.PalavrasChave));
+        var novaEquipe = await CadastroHelper.CadastrarNovaEquipe(
+            organizacao: usuarioPermissaoCadastroFeeds.Organizacao,
+            usuariosEquipe: []);
 
-        var status = dadosDaResposta.RootElement.GetProperty("status").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(status));
-        Assert.That(status, Is.EqualTo(request.Status));
+        var token = GeradorTokenUsuarioBuilder.Build().Gerar(usuarioPermissaoCadastroFeeds.Id);
 
-        var visibilidadeUsuarios = dadosDaResposta.RootElement.GetProperty("visibilidadeUsuarios").EnumerateArray();
-        Assert.That(visibilidadeUsuarios, Is.Not.Null);
-        Assert.That(visibilidadeUsuarios.ToListString(), Is.EquivalentTo(request.VisibilidadeUsuarios!));
+        var request = RequestCadastrarFeedBuilder.Build();
+        request.Organizacao = usuarioPermissaoCadastroFeeds.Organizacao.Nome;
+        request.VisibilidadeEquipes = [novaEquipe.Nome];
+        request.VisibilidadeUsuarios = [_usuarioSemPerfilNemPermissao.Email];
 
-        var visibilidadeEquipes = dadosDaResposta.RootElement.GetProperty("visibilidadeEquipes").EnumerateArray();
-        Assert.That(visibilidadeEquipes, Is.Not.Null);
-        Assert.That(visibilidadeEquipes.ToListString(), Is.EquivalentTo(request.VisibilidadeEquipes!));
+        var response = await HttpHelper.DoPost(url: _baseUrlFeed, request: request, token: token, cancellationToken: cancellationToken);
 
-        var expiraEm = dadosDaResposta.RootElement.GetProperty("expiraEm").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(expiraEm));
-        Assert.That(expiraEm, Is.EqualTo(request.ExpiraEm));
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.Created));
 
-        var organizacao = dadosDaResposta.RootElement.GetProperty("organizacao").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(organizacao));
-        Assert.That(organizacao, Is.EqualTo(request.Organizacao));
+        var dadosDaResposta = await HttpResponseUtil.PegarDadosDaResposta(response);
+
+        AssertDadosDaRespostaComRequest(dadosDaResposta, request);
+    }
+
+    [Test]
+    public async Task Erro_Usuario_Com_Permissao_Informando_Outra_Organizacao()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var usuarioPermissaoCadastroFeeds = await CadastroHelper.CadastrarNovoUsuario(permissoes: ["Cadastro de Feeds"], ativar: true);
+
+        var organizacaoNova = await CadastroHelper.CadastrarNovaOrganizacao();
+
+        var token = GeradorTokenUsuarioBuilder.Build().Gerar(usuarioPermissaoCadastroFeeds.Id);
+
+        var request = RequestCadastrarFeedBuilder.Build();
+        request.Organizacao = organizacaoNova.Nome;
+        request.VisibilidadeEquipes = [];
+        request.VisibilidadeUsuarios = [];
+
+        var response = await HttpHelper.DoPost(url: _baseUrlFeed, request: request, token: token, cancellationToken: cancellationToken);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var erros = await HttpResponseUtil.PegarMensagensDeErro(response);
+
+        var mensagemEsperada = MessagesException.GetString("ORGANIZACAO_NAO_ENCONTRADA");
+
+        Assert.That(erros.Count(), Is.EqualTo(1));
+        Assert.That(erros.FirstOrDefault().GetString(), Is.EqualTo(mensagemEsperada));
     }
 
     [Test]

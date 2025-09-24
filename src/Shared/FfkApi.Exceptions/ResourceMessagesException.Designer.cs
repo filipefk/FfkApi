@@ -430,6 +430,24 @@ namespace FfkApi.Exceptions {
         }
         
         /// <summary>
+        ///   Looks up a localized string similar to Não é possível trocar a organização do feed enquanto existirem equipes associadas.
+        /// </summary>
+        public static string IMPOSSIVEL_TROCAR_ORGANIZACAO_FEED_QUANDO_TEM_VISIBILIDADE_EQUIPES {
+            get {
+                return ResourceManager.GetString("IMPOSSIVEL_TROCAR_ORGANIZACAO_FEED_QUANDO_TEM_VISIBILIDADE_EQUIPES", resourceCulture);
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized string similar to Não é possível trocar a organização do feed enquanto existirem usuários associados.
+        /// </summary>
+        public static string IMPOSSIVEL_TROCAR_ORGANIZACAO_FEED_QUANDO_TEM_VISIBILIDADE_USUARIOS {
+            get {
+                return ResourceManager.GetString("IMPOSSIVEL_TROCAR_ORGANIZACAO_FEED_QUANDO_TEM_VISIBILIDADE_USUARIOS", resourceCulture);
+            }
+        }
+        
+        /// <summary>
         ///   Looks up a localized string similar to Indisponibilidade não encontrada.
         /// </summary>
         public static string INDISPONIBILIDADE_NAO_ENCONTRADA {

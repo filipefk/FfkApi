@@ -1,4 +1,5 @@
 using Bogus;
+using FfkApi.Communication.Requests;
 using TestUtil.Extension;
 
 namespace TestUtil.Requests;

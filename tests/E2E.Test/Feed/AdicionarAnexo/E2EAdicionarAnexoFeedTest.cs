@@ -1,6 +1,8 @@
+using FfkApi.Communication.Requests;
 using FfkApi.Domain.Configurations;
 using FfkApi.Exceptions;
 using System.Net;
+using System.Text.Json;
 using TestUtil.Entities;
 using TestUtil.HttpUtil;
 using TestUtil.Requests;
@@ -22,8 +24,29 @@ public class E2EAdicionarAnexoFeedTest : E2EClassFixture
         ConfiguracaoArquivoAnexo.Inicializar(_tamanhoMaximoArquivo);
     }
 
+    private static void AssertDadosDaRespostaComRequest(JsonDocument dadosDaResposta, RequestAdicionarAnexoFeed request)
+    {
+        Assert.That(!string.IsNullOrWhiteSpace(dadosDaResposta.RootElement.GetProperty("id").GetString()));
+
+        var nome = dadosDaResposta.RootElement.GetProperty("nome").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(nome));
+        Assert.That(nome, Is.EqualTo(request.Nome));
+
+        var descricao = dadosDaResposta.RootElement.GetProperty("descricao").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(descricao));
+        Assert.That(descricao, Is.EqualTo(request.Descricao));
+
+        var nomeArquivo = dadosDaResposta.RootElement.GetProperty("nomeArquivo").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(nomeArquivo));
+        Assert.That(nomeArquivo, Is.EqualTo(request.Arquivo!.FileName));
+
+        var tamanhoBytes = dadosDaResposta.RootElement.GetProperty("tamanhoBytes").GetInt64();
+        Assert.That(tamanhoBytes, Is.Not.Null);
+        Assert.That(tamanhoBytes, Is.EqualTo(request.Arquivo.Length));
+    }
+
     [Test]
-    public async Task Sucesso_Administrador_Arquivo_Pequeno()
+    public async Task Sucesso_Administrador_Arquivo_Pequeno_E_Feed_De_Outra_Organizacao()
     {
         var cancellationToken = new CancellationTokenSource().Token;
 
@@ -32,7 +55,9 @@ public class E2EAdicionarAnexoFeedTest : E2EClassFixture
         var anexo = AnexoBuilder.Build();
         anexo.TamanhoBytes = (long)(_tamanhoMaximoArquivo * 0.01);
 
-        var feedNovo = await CadastroHelper.CadastrarNovoFeed();
+        var organizacaoNova = await CadastroHelper.CadastrarNovaOrganizacao();
+
+        var feedNovo = await CadastroHelper.CadastrarNovoFeed(organizacao: organizacaoNova);
 
         var request = RequestAdicionarAnexoFeedBuilder.Build(anexo, feedNovo.Id.ToString());
 
@@ -42,27 +67,11 @@ public class E2EAdicionarAnexoFeedTest : E2EClassFixture
 
         var dadosDaResposta = await HttpResponseUtil.PegarDadosDaResposta(response);
 
-        Assert.That(!string.IsNullOrWhiteSpace(dadosDaResposta.RootElement.GetProperty("id").GetString()));
-
-        var nome = dadosDaResposta.RootElement.GetProperty("nome").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(nome));
-        Assert.That(nome, Is.EqualTo(request.Nome));
-
-        var descricao = dadosDaResposta.RootElement.GetProperty("descricao").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(descricao));
-        Assert.That(descricao, Is.EqualTo(request.Descricao));
-
-        var nomeArquivo = dadosDaResposta.RootElement.GetProperty("nomeArquivo").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(nomeArquivo));
-        Assert.That(nomeArquivo, Is.EqualTo(request.Arquivo!.FileName));
-
-        var tamanhoBytes = dadosDaResposta.RootElement.GetProperty("tamanhoBytes").GetInt64();
-        Assert.That(tamanhoBytes, Is.Not.Null);
-        Assert.That(tamanhoBytes, Is.EqualTo(request.Arquivo.Length));
+        AssertDadosDaRespostaComRequest(dadosDaResposta, request);
     }
 
     [Test]
-    public async Task Sucesso_Administrador_Arquivo_Tamanho_Maximo()
+    public async Task Sucesso_Administrador_Arquivo_Tamanho_Maximo_E_Feed_De_Outra_Organizacao()
     {
         var cancellationToken = new CancellationTokenSource().Token;
 
@@ -71,7 +80,9 @@ public class E2EAdicionarAnexoFeedTest : E2EClassFixture
         var anexo = AnexoBuilder.Build();
         anexo.TamanhoBytes = _tamanhoMaximoArquivo;
 
-        var feedNovo = await CadastroHelper.CadastrarNovoFeed();
+        var organizacaoNova = await CadastroHelper.CadastrarNovaOrganizacao();
+
+        var feedNovo = await CadastroHelper.CadastrarNovoFeed(organizacao: organizacaoNova);
 
         var request = RequestAdicionarAnexoFeedBuilder.Build(anexo, feedNovo.Id.ToString());
 
@@ -81,27 +92,11 @@ public class E2EAdicionarAnexoFeedTest : E2EClassFixture
 
         var dadosDaResposta = await HttpResponseUtil.PegarDadosDaResposta(response);
 
-        Assert.That(!string.IsNullOrWhiteSpace(dadosDaResposta.RootElement.GetProperty("id").GetString()));
-
-        var nome = dadosDaResposta.RootElement.GetProperty("nome").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(nome));
-        Assert.That(nome, Is.EqualTo(request.Nome));
-
-        var descricao = dadosDaResposta.RootElement.GetProperty("descricao").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(descricao));
-        Assert.That(descricao, Is.EqualTo(request.Descricao));
-
-        var nomeArquivo = dadosDaResposta.RootElement.GetProperty("nomeArquivo").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(nomeArquivo));
-        Assert.That(nomeArquivo, Is.EqualTo(request.Arquivo!.FileName));
-
-        var tamanhoBytes = dadosDaResposta.RootElement.GetProperty("tamanhoBytes").GetInt64();
-        Assert.That(tamanhoBytes, Is.Not.Null);
-        Assert.That(tamanhoBytes, Is.EqualTo(request.Arquivo.Length));
+        AssertDadosDaRespostaComRequest(dadosDaResposta, request);
     }
 
     [Test]
-    public async Task Sucesso_Usuario_Com_Permissao()
+    public async Task Sucesso_Usuario_Com_Permissao_E_Feed_Da_Mesma_Organizacao()
     {
         var cancellationToken = new CancellationTokenSource().Token;
 
@@ -112,7 +107,7 @@ public class E2EAdicionarAnexoFeedTest : E2EClassFixture
         var anexo = AnexoBuilder.Build();
         anexo.TamanhoBytes = (long)(_tamanhoMaximoArquivo * 0.01);
 
-        var feedNovo = await CadastroHelper.CadastrarNovoFeed();
+        var feedNovo = await CadastroHelper.CadastrarNovoFeed(organizacao: usuarioPermissaoCadastroFeeds.Organizacao);
 
         var request = RequestAdicionarAnexoFeedBuilder.Build(anexo, feedNovo.Id.ToString());
 
@@ -122,23 +117,37 @@ public class E2EAdicionarAnexoFeedTest : E2EClassFixture
 
         var dadosDaResposta = await HttpResponseUtil.PegarDadosDaResposta(response);
 
-        Assert.That(!string.IsNullOrWhiteSpace(dadosDaResposta.RootElement.GetProperty("id").GetString()));
+        AssertDadosDaRespostaComRequest(dadosDaResposta, request);
+    }
 
-        var nome = dadosDaResposta.RootElement.GetProperty("nome").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(nome));
-        Assert.That(nome, Is.EqualTo(request.Nome));
+    [Test]
+    public async Task Erro_Usuario_Com_Permissao_E_Feed_De_Outra_Organizacao()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
 
-        var descricao = dadosDaResposta.RootElement.GetProperty("descricao").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(descricao));
-        Assert.That(descricao, Is.EqualTo(request.Descricao));
+        var usuarioPermissaoCadastroFeeds = await CadastroHelper.CadastrarNovoUsuario(permissoes: ["Cadastro de Feeds"], ativar: true);
 
-        var nomeArquivo = dadosDaResposta.RootElement.GetProperty("nomeArquivo").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(nomeArquivo));
-        Assert.That(nomeArquivo, Is.EqualTo(request.Arquivo!.FileName));
+        var token = GeradorTokenUsuarioBuilder.Build().Gerar(usuarioPermissaoCadastroFeeds.Id);
 
-        var tamanhoBytes = dadosDaResposta.RootElement.GetProperty("tamanhoBytes").GetInt64();
-        Assert.That(tamanhoBytes, Is.Not.Null);
-        Assert.That(tamanhoBytes, Is.EqualTo(request.Arquivo.Length));
+        var anexo = AnexoBuilder.Build();
+        anexo.TamanhoBytes = (long)(_tamanhoMaximoArquivo * 0.01);
+
+        var organizacaoNova = await CadastroHelper.CadastrarNovaOrganizacao();
+
+        var feedNovo = await CadastroHelper.CadastrarNovoFeed(organizacao: organizacaoNova);
+
+        var request = RequestAdicionarAnexoFeedBuilder.Build(anexo, feedNovo.Id.ToString());
+
+        var response = await HttpHelper.DoPostCadastrarAnexo(url: _baseUrlAdicionarAnexoFeed, request: request, token: token, cancellationToken: cancellationToken);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.BadRequest));
+
+        var erros = await HttpResponseUtil.PegarMensagensDeErro(response);
+
+        var mensagemEsperada = MessagesException.GetString("FEED_NAO_ENCONTRADO");
+
+        Assert.That(erros.Count(), Is.EqualTo(1));
+        Assert.That(erros.FirstOrDefault().GetString(), Is.EqualTo(mensagemEsperada));
     }
 
     [Test]

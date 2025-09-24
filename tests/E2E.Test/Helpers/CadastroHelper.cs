@@ -269,14 +269,19 @@ public class CadastroHelper
         return anexo;
     }
 
-    public async Task<FfkApi.Domain.Entities.Feed> CadastrarNovoFeed(int quantAnexos = 0, long tamanhoMaximoArquivo = 1024)
+    public async Task<FfkApi.Domain.Entities.Feed> CadastrarNovoFeed(
+        int quantAnexos = 0,
+        long tamanhoMaximoArquivo = 1024,
+        FfkApi.Domain.Entities.Organizacao? organizacao = null)
     {
         var cancellationToken = new CancellationTokenSource().Token;
 
         var token = GeradorTokenUsuarioBuilder.Build().Gerar(_usuarioAdministrador.Id);
 
+        organizacao ??= _usuarioAdministrador.Organizacao;
+
         var request = RequestCadastrarFeedBuilder.Build();
-        request.Organizacao = _usuarioAdministrador.Organizacao.Nome;
+        request.Organizacao = organizacao?.Nome;
         request.VisibilidadeEquipes = [];
         request.VisibilidadeUsuarios = [];
 
@@ -317,9 +322,8 @@ public class CadastroHelper
         Assert.That(!string.IsNullOrWhiteSpace(expiraEm));
         Assert.That(expiraEm, Is.EqualTo(request.ExpiraEm));
 
-        var organizacao = dadosDaResposta.RootElement.GetProperty("organizacao").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(organizacao));
-        Assert.That(organizacao, Is.EqualTo(request.Organizacao));
+        var organizacaoResposta = dadosDaResposta.RootElement.GetProperty("organizacao").GetString();
+        Assert.That(organizacaoResposta, Is.EqualTo(organizacao!.Nome));
 
         var novoFeed = new FfkApi.Domain.Entities.Feed
         {
@@ -331,8 +335,8 @@ public class CadastroHelper
             VisibilidadeUsuarios = [],
             VisibilidadeEquipes = [],
             ExpiraEm = DateOnly.ParseExact(expiraEm!, "dd/MM/yyyy"),
-            IdOrganizacao = _usuarioAdministrador.Organizacao.Id,
-            Organizacao = _usuarioAdministrador.Organizacao
+            IdOrganizacao = organizacao.Id,
+            Organizacao = organizacao
         };
 
         for (int i = 0; i < quantAnexos; i++)

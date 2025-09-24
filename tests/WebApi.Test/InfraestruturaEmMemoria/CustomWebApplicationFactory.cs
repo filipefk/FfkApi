@@ -246,7 +246,7 @@ public class CustomWebApplicationFactory : WebApplicationFactory<Program>
         dbContext.SaveChanges();
         _entidadesCriadas["AnexoNovo"] = anexoNovo;
 
-        var feedNovo = FeedBuilder.Build();
+        var feedNovo = FeedBuilder.Build(usuarioPermissaoCadastroFeeds.Organizacao);
         dbContext.Feeds.Add(feedNovo);
         dbContext.SaveChanges();
         _entidadesCriadas["FeedNovo"] = feedNovo;

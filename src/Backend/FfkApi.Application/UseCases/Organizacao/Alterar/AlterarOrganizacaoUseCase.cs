@@ -1,6 +1,7 @@
 using AutoMapper;
 using FfkApi.Application.Extension;
 using FfkApi.Application.Validators;
+using FfkApi.Communication.Requests;
 using FfkApi.Domain.Repositories;
 using FfkApi.Exceptions;
 using FfkApi.Exceptions.ExceptionsBase;

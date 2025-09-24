@@ -1,11 +1,13 @@
 using FfkApi.Application.UseCases.Feed.Pegar;
 using FfkApi.Communication.Requests;
+using FfkApi.Communication.Responses;
 using FfkApi.Exceptions;
 using FfkApi.Exceptions.ExceptionsBase;
 using NUnit.Framework;
 using TestUtil.AutoMapper;
 using TestUtil.Entities;
 using TestUtil.Repositories;
+using TestUtil.Services;
 
 namespace UnidadeUseCases.Test.Feed.Pegar;
 
@@ -13,24 +15,10 @@ namespace UnidadeUseCases.Test.Feed.Pegar;
 [Parallelizable(ParallelScope.All)]
 public class PegarFeedUseCaseTest
 {
-    [Test]
-    public async Task Sucesso()
+    private static void AssertResponseComFeed(ResponseDadosFeed? response, FfkApi.Domain.Entities.Feed feed)
     {
-        var cancellationToken = new CancellationTokenSource().Token;
-
-        var feed = FeedBuilder.Build();
-
-        var request = new RequestPegarFeed
-        {
-            Id = feed.Id.ToString()
-        };
-
-        var useCase = CriarUseCase(cancellationToken: cancellationToken, feed: feed);
-
-        var response = await useCase.Execute(request, cancellationToken);
-
         Assert.That(response, Is.Not.Null);
-        Assert.That(response.Id, Is.Not.Null);
+        Assert.That(response!.Id, Is.Not.Null);
         Assert.That(response.Id, Is.EqualTo(feed.Id));
         Assert.That(response.Nome, Is.EqualTo(feed.Nome));
         Assert.That(response.Descricao, Is.EqualTo(feed.Descricao));
@@ -43,6 +31,82 @@ public class PegarFeedUseCaseTest
     }
 
     [Test]
+    public async Task Sucesso_Administrador_Pegando_Feed_De_Outra_Organizacao()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var feed = FeedBuilder.Build();
+
+        var request = new RequestPegarFeed
+        {
+            Id = feed.Id.ToString()
+        };
+
+        var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            feed: feed);
+
+        var response = await useCase.Execute(request, cancellationToken);
+
+        AssertResponseComFeed(response, feed);
+    }
+
+    [Test]
+    public async Task Sucesso_Nao_Administrador_Pegando_Feed_Da_Propria_Organizacao()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var feed = FeedBuilder.Build();
+
+        var request = new RequestPegarFeed
+        {
+            Id = feed.Id.ToString()
+        };
+
+        var usuarioLogado = UsuarioBuilder.Build(organizacao: feed.Organizacao);
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            feed: feed);
+
+        var response = await useCase.Execute(request, cancellationToken);
+
+        AssertResponseComFeed(response, feed);
+    }
+
+    [Test]
+    public async Task Erro_Nao_Administrador_Pegando_Feed_De_Outra_Organizacao()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var feed = FeedBuilder.Build();
+
+        var request = new RequestPegarFeed
+        {
+            Id = feed.Id.ToString()
+        };
+
+        var usuarioLogado = UsuarioBuilder.Build();
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            feed: feed);
+
+        async Task func() => await useCase.Execute(request, cancellationToken);
+
+        var ex = await Task.Run(() => Assert.ThrowsAsync<NotFoundException>(async () => await func()));
+        Assert.That(ex, Is.Not.Null);
+        var mensagensDeErro = ex!.PegarMensagensDeErro();
+        Assert.That(mensagensDeErro.Count, Is.EqualTo(1));
+        Assert.That(mensagensDeErro, Contains.Item(ResourceMessagesException.FEED_NAO_ENCONTRADO));
+    }
+
+    [Test]
     public async Task Erro_Feed_Nao_Encontrado()
     {
         var cancellationToken = new CancellationTokenSource().Token;
@@ -52,7 +116,11 @@ public class PegarFeedUseCaseTest
             Id = Guid.NewGuid().ToString()
         };
 
-        var useCase = CriarUseCase(cancellationToken: cancellationToken);
+        var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado);
 
         async Task func() => await useCase.Execute(request, cancellationToken);
 
@@ -78,7 +146,12 @@ public class PegarFeedUseCaseTest
             Id = id
         };
 
-        var useCase = CriarUseCase(cancellationToken: cancellationToken, feed: feed);
+        var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            feed: feed);
 
         async Task func() => await useCase.Execute(request, cancellationToken);
 
@@ -104,7 +177,12 @@ public class PegarFeedUseCaseTest
             Id = id
         };
 
-        var useCase = CriarUseCase(cancellationToken: cancellationToken, feed: feed);
+        var usuarioLogado = UsuarioBuilder.Build(perfisAcesso: ["Administrador"]);
+
+        var useCase = CriarUseCase(
+            cancellationToken: cancellationToken,
+            usuarioLogado: usuarioLogado,
+            feed: feed);
 
         async Task func() => await useCase.Execute(request, cancellationToken);
 
@@ -117,6 +195,7 @@ public class PegarFeedUseCaseTest
 
     private static PegarFeedUseCase CriarUseCase(
         CancellationToken cancellationToken,
+        FfkApi.Domain.Entities.Usuario usuarioLogado,
         FfkApi.Domain.Entities.Feed? feed = null)
     {
         var feedRepository = new FeedRepositoryBuilder();
@@ -124,10 +203,12 @@ public class PegarFeedUseCaseTest
         if (feed != null)
         {
             feedRepository.SetupPegarFeedPorIdReturnsFeed(feed, cancellationToken);
+            feedRepository.SetupPegarFeedPorIdReturnsFeed(feed, feed.Organizacao.Id, cancellationToken);
         }
 
         return new PegarFeedUseCase(
             feedRepository.Build(),
-            MapperBuilder.Build());
+            MapperBuilder.Build(),
+            UsuarioLogadoServiceBuilder.Build(usuarioLogado, cancellationToken));
     }
 }

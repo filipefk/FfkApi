@@ -1,5 +1,6 @@
 using FfkApi.Exceptions;
 using System.Net;
+using System.Text.Json;
 using TestUtil.Extension;
 using TestUtil.HttpUtil;
 using TestUtil.Tokens;
@@ -24,14 +25,57 @@ public class E2EPesquisarFeedTest : E2EClassFixture
         return listaPalavras[new Random().Next(0, listaPalavras.Length)].Trim();
     }
 
+    private static void AssertJsonElementComFeed(JsonElement jsonElement, FfkApi.Domain.Entities.Feed feed)
+    {
+        var id = jsonElement.GetProperty("id").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(id));
+        Assert.That(id, Is.EqualTo(feed.Id.ToString()));
+
+        var nome = jsonElement.GetProperty("nome").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(nome));
+        Assert.That(nome, Is.EqualTo(feed.Nome));
+
+        var descricao = jsonElement.GetProperty("descricao").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(descricao));
+        Assert.That(descricao, Is.EqualTo(feed.Descricao));
+
+        var palavrasChave = jsonElement.GetProperty("palavrasChave").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(palavrasChave));
+        Assert.That(palavrasChave, Is.EqualTo(feed.PalavrasChave));
+
+        var status = jsonElement.GetProperty("status").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(status));
+        Assert.That(status, Is.EqualTo(feed.Status.ToString()));
+
+        var anexos = jsonElement.GetProperty("anexos").EnumerateArray();
+        Assert.That(anexos, Is.Not.Null);
+
+        var visibilidadeUsuarios = jsonElement.GetProperty("visibilidadeUsuarios").EnumerateArray();
+        Assert.That(visibilidadeUsuarios, Is.Not.Null);
+        Assert.That(visibilidadeUsuarios.ToListString(), Is.EquivalentTo(feed.VisibilidadeUsuarios.Select(usuario => usuario.Email).ToList()));
+
+        var visibilidadeEquipes = jsonElement.GetProperty("visibilidadeEquipes").EnumerateArray();
+        Assert.That(visibilidadeEquipes, Is.Not.Null);
+        Assert.That(visibilidadeEquipes.ToListString(), Is.EquivalentTo(feed.VisibilidadeEquipes.Select(equipe => equipe.Nome).ToList()));
+
+        var expiraEm = jsonElement.GetProperty("expiraEm").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(expiraEm));
+        Assert.That(expiraEm, Is.EqualTo(feed.ExpiraEm!.Value.ToString("dd/MM/yyyy")));
+
+        var organizacao = jsonElement.GetProperty("organizacao").GetString();
+        Assert.That(!string.IsNullOrWhiteSpace(organizacao));
+        Assert.That(organizacao, Is.EqualTo(feed.Organizacao.Nome));
+    }
+
     [Test]
-    public async Task Sucesso_Administrador()
+    public async Task Sucesso_Administrador_Pesquisando_Feed_De_Outra_Organizacao()
     {
         var cancellationToken = new CancellationTokenSource().Token;
 
         var token = GeradorTokenUsuarioBuilder.Build().Gerar(_usuarioAdministrador.Id);
 
-        var feedNovo = await CadastroHelper.CadastrarNovoFeed();
+        var organizacaoNova = await CadastroHelper.CadastrarNovaOrganizacao();
+        var feedNovo = await CadastroHelper.CadastrarNovoFeed(organizacao: organizacaoNova);
 
         var query = AjustaQuery(feedNovo);
 
@@ -46,44 +90,7 @@ public class E2EPesquisarFeedTest : E2EClassFixture
 
         var primeiroFeed = arrayFeeds.FirstOrDefault();
 
-        var id = primeiroFeed.GetProperty("id").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(id));
-        Assert.That(id, Is.EqualTo(feedNovo.Id.ToString()));
-
-        var nome = primeiroFeed.GetProperty("nome").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(nome));
-        Assert.That(nome, Is.EqualTo(feedNovo.Nome));
-
-        var descricao = primeiroFeed.GetProperty("descricao").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(descricao));
-        Assert.That(descricao, Is.EqualTo(feedNovo.Descricao));
-
-        var palavrasChave = primeiroFeed.GetProperty("palavrasChave").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(palavrasChave));
-        Assert.That(palavrasChave, Is.EqualTo(feedNovo.PalavrasChave));
-
-        var status = primeiroFeed.GetProperty("status").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(status));
-        Assert.That(status, Is.EqualTo(feedNovo.Status.ToString()));
-
-        var anexos = primeiroFeed.GetProperty("anexos").EnumerateArray();
-        Assert.That(anexos, Is.Not.Null);
-
-        var visibilidadeUsuarios = primeiroFeed.GetProperty("visibilidadeUsuarios").EnumerateArray();
-        Assert.That(visibilidadeUsuarios, Is.Not.Null);
-        Assert.That(visibilidadeUsuarios.ToListString(), Is.EquivalentTo(feedNovo.VisibilidadeUsuarios.Select(usuario => usuario.Email).ToList()));
-
-        var visibilidadeEquipes = primeiroFeed.GetProperty("visibilidadeEquipes").EnumerateArray();
-        Assert.That(visibilidadeEquipes, Is.Not.Null);
-        Assert.That(visibilidadeEquipes.ToListString(), Is.EquivalentTo(feedNovo.VisibilidadeEquipes.Select(equipe => equipe.Nome).ToList()));
-
-        var expiraEm = primeiroFeed.GetProperty("expiraEm").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(expiraEm));
-        Assert.That(expiraEm, Is.EqualTo(feedNovo.ExpiraEm!.Value.ToString("dd/MM/yyyy")));
-
-        var organizacao = primeiroFeed.GetProperty("organizacao").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(organizacao));
-        Assert.That(organizacao, Is.EqualTo(feedNovo.Organizacao.Nome));
+        AssertJsonElementComFeed(primeiroFeed, feedNovo);
 
         Assert.That(dadosDaResposta.RootElement.GetProperty("paginaAtual").GetUInt16() > 0);
         Assert.That(dadosDaResposta.RootElement.GetProperty("totalDePaginas").GetUInt16() > 0);
@@ -92,13 +99,13 @@ public class E2EPesquisarFeedTest : E2EClassFixture
     }
 
     [Test]
-    public async Task Sucesso_Usuario_Sem_Permissao()
+    public async Task Sucesso_Usuario_Sem_Permissao_Pesquisando_Feed_Da_Propria_Organizacao()
     {
         var cancellationToken = new CancellationTokenSource().Token;
 
         var token = GeradorTokenUsuarioBuilder.Build().Gerar(_usuarioSemPerfilNemPermissao.Id);
 
-        var feedNovo = await CadastroHelper.CadastrarNovoFeed();
+        var feedNovo = await CadastroHelper.CadastrarNovoFeed(organizacao: _usuarioSemPerfilNemPermissao.Organizacao);
 
         var query = AjustaQuery(feedNovo);
 
@@ -113,49 +120,38 @@ public class E2EPesquisarFeedTest : E2EClassFixture
 
         var primeiroFeed = arrayFeeds.FirstOrDefault();
 
-        var id = primeiroFeed.GetProperty("id").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(id));
-        Assert.That(id, Is.EqualTo(feedNovo.Id.ToString()));
-
-        var nome = primeiroFeed.GetProperty("nome").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(nome));
-        Assert.That(nome, Is.EqualTo(feedNovo.Nome));
-
-        var descricao = primeiroFeed.GetProperty("descricao").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(descricao));
-        Assert.That(descricao, Is.EqualTo(feedNovo.Descricao));
-
-        var palavrasChave = primeiroFeed.GetProperty("palavrasChave").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(palavrasChave));
-        Assert.That(palavrasChave, Is.EqualTo(feedNovo.PalavrasChave));
-
-        var status = primeiroFeed.GetProperty("status").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(status));
-        Assert.That(status, Is.EqualTo(feedNovo.Status.ToString()));
-
-        var anexos = primeiroFeed.GetProperty("anexos").EnumerateArray();
-        Assert.That(anexos, Is.Not.Null);
-
-        var visibilidadeUsuarios = primeiroFeed.GetProperty("visibilidadeUsuarios").EnumerateArray();
-        Assert.That(visibilidadeUsuarios, Is.Not.Null);
-        Assert.That(visibilidadeUsuarios.ToListString(), Is.EquivalentTo(feedNovo.VisibilidadeUsuarios.Select(usuario => usuario.Email).ToList()));
-
-        var visibilidadeEquipes = primeiroFeed.GetProperty("visibilidadeEquipes").EnumerateArray();
-        Assert.That(visibilidadeEquipes, Is.Not.Null);
-        Assert.That(visibilidadeEquipes.ToListString(), Is.EquivalentTo(feedNovo.VisibilidadeEquipes.Select(equipe => equipe.Nome).ToList()));
-
-        var expiraEm = primeiroFeed.GetProperty("expiraEm").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(expiraEm));
-        Assert.That(expiraEm, Is.EqualTo(feedNovo.ExpiraEm!.Value.ToString("dd/MM/yyyy")));
-
-        var organizacao = primeiroFeed.GetProperty("organizacao").GetString();
-        Assert.That(!string.IsNullOrWhiteSpace(organizacao));
-        Assert.That(organizacao, Is.EqualTo(feedNovo.Organizacao.Nome));
+        AssertJsonElementComFeed(primeiroFeed, feedNovo);
 
         Assert.That(dadosDaResposta.RootElement.GetProperty("paginaAtual").GetUInt16() > 0);
         Assert.That(dadosDaResposta.RootElement.GetProperty("totalDePaginas").GetUInt16() > 0);
         Assert.That(dadosDaResposta.RootElement.GetProperty("tamanhoDaPagina").GetUInt16() > 0);
         Assert.That(dadosDaResposta.RootElement.GetProperty("quantidadeTotal").GetUInt16() > 0);
+    }
+
+    [Test]
+    public async Task Erro_Usuario_Com_Permissao_Pesquisando_Feed_De_Outra_Organizacao()
+    {
+        var cancellationToken = new CancellationTokenSource().Token;
+
+        var usuarioPermissaoCadastroFeeds = await CadastroHelper.CadastrarNovoUsuario(permissoes: ["Cadastro de Feeds"], ativar: true);
+
+        var token = GeradorTokenUsuarioBuilder.Build().Gerar(usuarioPermissaoCadastroFeeds.Id);
+
+        var organizacaoNova = await CadastroHelper.CadastrarNovaOrganizacao();
+        var feedNovo = await CadastroHelper.CadastrarNovoFeed(organizacao: organizacaoNova);
+
+        var query = AjustaQuery(feedNovo);
+
+        var response = await HttpHelper.DoGet($"{_baseUrlPesquisar}?{query}", cancellationToken, token);
+
+        Assert.That(response.StatusCode, Is.EqualTo(HttpStatusCode.NotFound));
+
+        var erros = await HttpResponseUtil.PegarMensagensDeErro(response);
+
+        var mensagemEsperada = MessagesException.GetString("FEED_NAO_ENCONTRADO");
+
+        Assert.That(erros.Count(), Is.EqualTo(1));
+        Assert.That(erros.FirstOrDefault().GetString(), Is.EqualTo(mensagemEsperada));
     }
 
     [Test]
