@@ -65,9 +65,9 @@ if (!builder.Configuration.RodandoTesteEmMemoria())
 
 app.UseHttpsRedirection();
 
+app.UseSwagger();
 if (builder.Environment.IsDevelopment())
 {
-    app.UseSwagger();
     app.UseSwaggerUI();
 }
 
