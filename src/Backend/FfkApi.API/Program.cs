@@ -1,5 +1,6 @@
 using FfkApi.API.BackgroundServices;
 using FfkApi.API.DebugUtil;
+using FfkApi.API.Documentation;
 using FfkApi.API.Filters;
 using FfkApi.API.HealthCheck;
 using FfkApi.API.Middleware;
@@ -26,7 +27,7 @@ if (escutarPorta > 0)
 builder.Services.AddControllers().AddJsonOptions(options => options.JsonSerializerOptions.Converters.Add(new FfkApi.Api.Converters.StringConverter()));
 builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddSwaggerSecurity();
+builder.Services.AddSwaggerSecurity(builder.Configuration);
 
 var strLogLevel = builder.Configuration.GetValue<string>("Logging:LogLevel:Default");
 var enumLogEventLevel = Enum.TryParse<LogEventLevel>(strLogLevel, true, out var parsedLogEventLevel)
@@ -55,6 +56,8 @@ if (!builder.Configuration.RodandoTesteEmMemoria())
     builder.Services.AddHangfire(builder.Configuration);
 }
 
+builder.Services.AddAssemblySwaggerExamples();
+
 var app = builder.Build();
 
 if (!builder.Configuration.RodandoTesteEmMemoria())
@@ -63,7 +66,10 @@ if (!builder.Configuration.RodandoTesteEmMemoria())
 app.UseHttpsRedirection();
 
 app.UseSwagger();
-app.UseSwaggerUI();
+if (builder.Environment.IsDevelopment())
+{
+    app.UseSwaggerUI();
+}
 
 app.UseMiddleware<CabecalhosSegurancaMiddleware>();
 app.UseMiddleware<EventosSegurancaMiddleware>();

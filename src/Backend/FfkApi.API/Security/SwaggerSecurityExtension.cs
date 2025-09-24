@@ -1,10 +1,12 @@
+using FfkApi.API.Documentation.OperationFilter;
 using Microsoft.OpenApi.Models;
+using Swashbuckle.AspNetCore.Filters;
 
 namespace FfkApi.API.Security;
 
 public static class SwaggerSecurityExtension
 {
-    public static void AddSwaggerSecurity(this IServiceCollection services)
+    public static void AddSwaggerSecurity(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddSwaggerGen(options =>
         {
@@ -65,6 +67,25 @@ public static class SwaggerSecurityExtension
                     new List<string>()
                 }
             });
+
+            var xmlFiles = new[]
+            {
+                "FfkApi.API.xml",
+                "FfkApi.Communication.xml"
+            };
+
+            foreach (var xmlFile in xmlFiles)
+            {
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                if (File.Exists(xmlPath))
+                {
+                    options.IncludeXmlComments(xmlPath, includeControllerXmlComments: true);
+                }
+            }
+
+            options.ExampleFilters();
+            options.OperationFilter<ConvertExampleToExamplesOperationFilter>();
+            options.OperationFilter<ErrorDocsOperationFilter>(configuration);
         });
     }
 }

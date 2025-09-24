@@ -8,6 +8,7 @@ namespace FfkApi.API.Controllers;
 
 [Route("[controller]")]
 [ApiController]
+[Produces("application/json")]
 public class MensageriaController : ControllerBase
 {
     [HttpPost]

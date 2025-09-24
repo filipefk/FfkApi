@@ -9,6 +9,7 @@ namespace FfkApi.API.Controllers;
 
 [Route("[controller]")]
 [ApiController]
+[Produces("application/json")]
 public sealed class CredenciaisController : ControllerBase
 {
     [HttpGet("senha")]
