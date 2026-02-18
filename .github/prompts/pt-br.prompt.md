@@ -1,0 +1,1 @@
+Sempre me responda em Português do Brasil.

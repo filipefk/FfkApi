@@ -81,11 +81,9 @@ public class UsuarioConfiguration : EntityBaseConfiguration<Usuario>
                       .HasConstraintName("FK_UsuariosPermissoes_Ref_Usuarios")
                       .IsRequired()
                       .OnDelete(DeleteBehavior.Cascade),
-                j =>
-                {
-                    j.HasKey("IdUsuario", "IdPermissao")
-                     .HasName("PK_UsuariosPermissoes");
-                });
+                j => j.HasKey("IdUsuario", "IdPermissao")
+                     .HasName("PK_UsuariosPermissoes")
+                );
 
         builder.Property(u => u.IdOrganizacao)
             .HasColumnType("uuid")

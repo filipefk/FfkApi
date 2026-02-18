@@ -22,7 +22,7 @@ public class LimpezaAuditoriaSegurancaUseCaseTest
         var unitOfWorkMock = new Mock<IUnitOfWork>();
         unitOfWorkMock.Setup(u => u.CommitAsync(cancellationToken)).Returns(Task.CompletedTask);
 
-        var useCase = CriarUseCase(cancellationToken: cancellationToken, unitOfWork: unitOfWorkMock.Object, dias: dias, registrosLimpados: registrosLimpados);
+        var useCase = CriarUseCase(cancellationToken: cancellationToken, unitOfWork: unitOfWorkMock.Object, dias: dias, registrosExcluidos: registrosLimpados);
 
         var resultado = await useCase.Execute(cancellationToken);
 
@@ -41,7 +41,7 @@ public class LimpezaAuditoriaSegurancaUseCaseTest
         var unitOfWorkMock = new Mock<IUnitOfWork>();
         unitOfWorkMock.Setup(u => u.CommitAsync(cancellationToken)).Returns(Task.CompletedTask);
 
-        var useCase = CriarUseCase(cancellationToken: cancellationToken, unitOfWork: unitOfWorkMock.Object, dias: dias, registrosLimpados: registrosLimpados);
+        var useCase = CriarUseCase(cancellationToken: cancellationToken, unitOfWork: unitOfWorkMock.Object, dias: dias, registrosExcluidos: registrosLimpados);
 
         var resultado = await useCase.Execute(cancellationToken);
 
@@ -53,7 +53,7 @@ public class LimpezaAuditoriaSegurancaUseCaseTest
         CancellationToken cancellationToken,
         IUnitOfWork unitOfWork,
         uint? dias = null,
-        int? registrosLimpados = null)
+        int? registrosExcluidos = null)
     {
         var auditoriaSegurancaRepository = new AuditoriaSegurancaRepositoryBuilder();
         var configMock = new Mock<IConfiguration>();
@@ -65,11 +65,11 @@ public class LimpezaAuditoriaSegurancaUseCaseTest
             configMock.Setup(c => c.GetSection("Configuracoes:Limpeza:LimpezaBanco:LimpezaAuditoriaSegurancaDias"))
                       .Returns(sectionMock.Object);
 
-            if (registrosLimpados != null)
+            if (registrosExcluidos != null)
             {
                 auditoriaSegurancaRepository.SetupLimparReturnsQuant(
                 dias.Value,
-                registrosLimpados.Value,
+                registrosExcluidos.Value,
                 cancellationToken);
             }
         }
