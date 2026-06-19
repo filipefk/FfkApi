@@ -141,6 +141,16 @@ dotnet test tests/E2E.Test
 
 Configurações de teste via `appsettings.Test.json`.
 
+### Cobertura de Código
+
+Execute `coverage-report.bat` na raiz da solução para buildar, rodar todos os testes (exceto E2E) e gerar o relatório HTML de cobertura:
+
+```bat
+coverage-report.bat
+```
+
+O relatório é gerado em `TestResults/CoverageReport/index.html` e aberto automaticamente no Chrome ao final.
+
 ## Variáveis de Configuração Relevantes (`appsettings`)
 
 | Seção | Descrição |
