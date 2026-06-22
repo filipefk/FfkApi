@@ -29,13 +29,22 @@ GeradorDeCodigo/
 dotnet run --project gerador/GeradorDeCodigo
 ```
 
-O gerador é **interativo**: sem argumentos de linha de comando. Após iniciar, solicita três valores:
+O gerador é **interativo**: sem argumentos de linha de comando. As perguntas feitas ao usuário são determinadas dinamicamente pelos modelos carregados em `Modelos/Crud/`:
+
+- O gerador lê todos os modelos e extrai as variáveis declaradas em cada um
+- **Variáveis do tipo Pasta** (ex: `{{PastaApi}}`, `{{PastaDomain}}`) são resolvidas automaticamente via mapeamento de diretórios — **não geram perguntas**
+- Para as demais variáveis, o gerador pergunta o valor uma única vez, mesmo que a variável apareça em múltiplos modelos
+- A ordem e o conjunto de perguntas refletem exatamente as variáveis não-pasta encontradas nos modelos
+
+Com os modelos atuais, as perguntas são:
 
 | Variável | Exemplo | Descrição |
 |---|---|---|
 | `NomeEntidade` | `Produto` | Nome singular da entidade (PascalCase) |
 | `NomeEntidadePlural` | `Produtos` | Nome plural (usado em rotas e coleções) |
 | `PermissaoCadastro` | `CRIAR_PRODUTO` | String de permissão para autorização na API |
+
+> **Atenção ao adicionar novos modelos:** se um novo template declarar uma variável ainda não presente nos modelos existentes, uma nova pergunta será incluída automaticamente no fluxo interativo. Se remover a última ocorrência de uma variável, a pergunta correspondente deixa de aparecer.
 
 Pressionar Enter sem valor encerra o gerador.
 
