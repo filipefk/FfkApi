@@ -110,10 +110,22 @@ Use o **GeradorDeCodigo** (`gerador/GeradorDeCodigo`) para scaffold. Ele cria um
 - Controller em API
 - Esqueletos de testes (unitários, integração, E2E)
 
+**Modos de execução:**
+```
+# Interativo (padrão)
+dotnet run --project gerador/GeradorDeCodigo
+
+# Não-interativo (linha de comando)
+dotnet run --project gerador/GeradorDeCodigo -- --NomeEntidade=Produto --NomeEntidadePlural=Produtos --PermissaoCadastro=CRIAR_PRODUTO
+
+# Consultar variáveis disponíveis
+dotnet run --project gerador/GeradorDeCodigo -- --info
+```
+
 Após gerar, procure por `// TODO : [GERADOR DE CÓDIGO] =>` em todos os arquivos gerados — esses comentários marcam os pontos que exigem ajuste manual para o caso específico. Só depois aplique a migration:
 
 ```
-dotnet ef migrations add <Nome> --project FfkApi.Infrastructure --startup-project FfkApi.API
+dotnet ef migrations add <Nome> --project src/Backend/FfkApi.Infrastructure --startup-project src/Backend/FfkApi.API
 ```
 
 ## Autenticação e Segurança

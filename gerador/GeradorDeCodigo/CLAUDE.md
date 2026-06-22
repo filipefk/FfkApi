@@ -25,11 +25,34 @@ GeradorDeCodigo/
 
 ## Como Executar
 
+### Modo interativo (padrão)
+
 ```
 dotnet run --project gerador/GeradorDeCodigo
 ```
 
-O gerador é **interativo**: sem argumentos de linha de comando. As perguntas feitas ao usuário são determinadas dinamicamente pelos modelos carregados em `Modelos/Crud/`:
+### Modo não-interativo (linha de comando)
+
+```
+dotnet run --project gerador/GeradorDeCodigo -- --NomeEntidade=Produto --NomeEntidadePlural=Produtos --PermissaoCadastro=CRIAR_PRODUTO
+```
+
+- Cada variável não-pasta é passada no formato `--NomeVariavel=Valor`
+- O nome da variável é exatamente o campo `SubstituirPor` do template
+- Se alguma variável obrigatória for omitida, o programa encerra com erro e exibe o uso correto (exit code 1)
+- Nenhuma janela de "Pressione qualquer tecla" é exibida neste modo
+
+### Consultar variáveis disponíveis
+
+```
+dotnet run --project gerador/GeradorDeCodigo -- --info
+```
+
+Exibe quais variáveis serão solicitadas com base nos modelos atuais e mostra o exemplo de linha de comando completo. Não gera nenhum arquivo.
+
+---
+
+As perguntas feitas ao usuário (no modo interativo) são determinadas dinamicamente pelos modelos carregados em `Modelos/Crud/`:
 
 - O gerador lê todos os modelos e extrai as variáveis declaradas em cada um
 - **Variáveis do tipo Pasta** (ex: `{{PastaApi}}`, `{{PastaDomain}}`) são resolvidas automaticamente via mapeamento de diretórios — **não geram perguntas**

@@ -21,30 +21,48 @@ public class GeradorCrud
         Console.SetError(multiWriter);
     }
 
-    public void GerarCrud()
+    public void GerarCrud(string[] args)
     {
+        var controlesCodigo = CarregarModelos();
+
+        if (args.Length == 1 && args[0] == "--info")
+        {
+            ExibirInfo(controlesCodigo);
+            return;
+        }
+
         RedirecionarConsoleParaArquivo($"LogGeradorCrud_{DateTime.Now:yyyyMMddHHmmss}.log");
 
         var blocosDeCodigoAdicionados = new Dictionary<string, int>();
         var inclusoesCodigo = new List<InclusaoCodigo>();
         var arquivosCriados = new List<string?>();
-        var controlesCodigo = new List<ControleCodigo>();
         var dicionario = new Dictionary<string, string>();
 
-        var lstarArquivos = ArquivoUtil.ListarArquivosDaPasta(pastas["PastaModelos"]);
-
-        Console.WriteLine("=== Carregando modelos ===\n");
-        foreach (var arquivo in lstarArquivos)
-        {
-            var controleCodigo = ArquivoUtil.LerControleCodigoArquivo(arquivo);
-            controlesCodigo.Add(controleCodigo);
-        }
+        var modoArgs = args.Length > 0;
+        if (modoArgs)
+            dicionario = ParseArgs(args);
 
         Console.WriteLine("\n=== Obtendo valores para variáveis ===\n");
+        var variavelFaltantes = new List<string>();
         foreach (var controleCodigo in controlesCodigo)
         {
             dicionario = PreencheValoresDasPastas(controleCodigo.Variaveis, dicionario);
-            dicionario = ObterValoresDasVariaveis(controleCodigo.Variaveis, dicionario);
+            if (modoArgs)
+                ColetarVariaveisFaltantes(controleCodigo.Variaveis, dicionario, variavelFaltantes);
+            else
+                dicionario = ObterValoresDasVariaveis(controleCodigo.Variaveis, dicionario);
+        }
+
+        if (modoArgs && variavelFaltantes.Count > 0)
+        {
+            var todasVariaveis = ObterVariaveisNaoPasta(controlesCodigo);
+            Console.WriteLine("Erro: os seguintes parâmetros são obrigatórios e não foram informados:");
+            foreach (var v in variavelFaltantes)
+                Console.WriteLine($"  --{v}=<valor>");
+            Console.WriteLine();
+            Console.WriteLine("Uso:");
+            Console.WriteLine($"  GeradorDeCodigo {string.Join(" ", todasVariaveis.Select(v => $"--{v}=<valor>"))}");
+            Environment.Exit(1);
         }
 
         Console.WriteLine("\n=== Criando código ===\n");
@@ -111,8 +129,68 @@ public class GeradorCrud
 
         RelatorioFinal(blocosDeCodigoAdicionados, arquivosCriados);
 
-        Console.WriteLine("\nPressione qualquer tecla para encerrar...");
-        Console.ReadKey();
+        if (!modoArgs)
+        {
+            Console.WriteLine("\nPressione qualquer tecla para encerrar...");
+            Console.ReadKey();
+        }
+    }
+
+    private List<ControleCodigo> CarregarModelos()
+    {
+        var controlesCodigo = new List<ControleCodigo>();
+        var arquivos = ArquivoUtil.ListarArquivosDaPasta(pastas["PastaModelos"]);
+        foreach (var arquivo in arquivos)
+            controlesCodigo.Add(ArquivoUtil.LerControleCodigoArquivo(arquivo));
+        return controlesCodigo;
+    }
+
+    private static Dictionary<string, string> ParseArgs(string[] args)
+    {
+        var dicionario = new Dictionary<string, string>();
+        foreach (var arg in args)
+        {
+            if (!arg.StartsWith("--") || !arg.Contains('='))
+                continue;
+            var sem = arg[2..];
+            var idx = sem.IndexOf('=');
+            var chave = sem[..idx];
+            var valor = sem[(idx + 1)..];
+            if (!string.IsNullOrWhiteSpace(chave) && !string.IsNullOrWhiteSpace(valor))
+                dicionario[chave] = valor;
+        }
+        return dicionario;
+    }
+
+    private static void ColetarVariaveisFaltantes(List<VariavelCodigo> variaveis, Dictionary<string, string> dicionario, List<string> faltantes)
+    {
+        foreach (var variavel in variaveis)
+        {
+            var chave = variavel.SubstituirPor;
+            if (!dicionario.ContainsKey(chave) && !faltantes.Contains(chave))
+                faltantes.Add(chave);
+        }
+    }
+
+    private static List<string> ObterVariaveisNaoPasta(List<ControleCodigo> controlesCodigo)
+    {
+        var resultado = new List<string>();
+        foreach (var controle in controlesCodigo)
+            foreach (var variavel in controle.Variaveis)
+                if (!variavel.SubstituirPor.StartsWith("Pasta", StringComparison.OrdinalIgnoreCase) && !resultado.Contains(variavel.SubstituirPor))
+                    resultado.Add(variavel.SubstituirPor);
+        return resultado;
+    }
+
+    private void ExibirInfo(List<ControleCodigo> controlesCodigo)
+    {
+        var variaveis = ObterVariaveisNaoPasta(controlesCodigo);
+        Console.WriteLine("Variáveis necessárias para execução:\n");
+        foreach (var v in variaveis)
+            Console.WriteLine($"  --{v}=<valor>");
+        Console.WriteLine();
+        Console.WriteLine("Exemplo de uso:");
+        Console.WriteLine($"  GeradorDeCodigo {string.Join(" ", variaveis.Select(v => $"--{v}=Exemplo{v}"))}");
     }
 
     private static void RelatorioFinal(Dictionary<string, int> blocosDeCodigoAdicionados, List<string?> arquivosCriados)
